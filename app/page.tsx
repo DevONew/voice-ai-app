@@ -69,7 +69,7 @@ export default function Home() {
       <div className="flex-1 flex items-end justify-center mb-12">
         <p
           className={`text-center transition-all duration-300 ${
-            isListening ? 'text-lg font-semibold text-black animate-fadeIn' : 'text-base text-gray-600'
+            isListening ? 'text-lg font-black text-black animate-fadeIn' : 'text-base font-bold text-gray-600'
           }`}
         >
           {statusText}
@@ -82,15 +82,17 @@ export default function Home() {
           {/* 메인 버튼 */}
           <button
             onClick={handleButtonClick}
-            className="relative rounded-full shadow-2xl focus:outline-none z-10 active:scale-95 cursor-pointer"
+            className="relative rounded-full shadow-2xl focus:outline-none z-10 active:scale-95 cursor-pointer border-0"
             style={{
               width: '200px',
               height: '200px',
               background: isListening
-                ? 'linear-gradient(135deg, #666666, #000000)'
+                ? 'radial-gradient(circle, #000000 0%, #999999 100%)'
                 : '#000000',
               transform: `scale(${animationActive ? scale : 1})`,
               transition: animationActive ? 'transform 0.4s ease-in-out' : 'transform 0.2s ease-in-out, background 0.3s ease-in-out',
+              border: 'none',
+              outline: 'none',
             }}
             aria-label="마이크 버튼"
             type="button"
