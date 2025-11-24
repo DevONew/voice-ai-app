@@ -10,7 +10,7 @@ export default function ResponseDisplay({ text, isVisible }: ResponseDisplayProp
 
   return (
     <div className="w-full max-w-xs animate-fadeIn">
-      <p className="text-center text-lg text-black leading-relaxed break-words font-medium">{text}</p>
+      <p className="text-center text-lg text-black leading-relaxed break-words font-bold">{text}</p>
     </div>
   )
 }
