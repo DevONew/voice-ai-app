@@ -118,13 +118,10 @@ export default function Home() {
     }
   }, [appState, startRecording, stopRecording, resetRecorder])
 
-  // 음성 인식 완료 후 자동으로 처리 시작
+  // 음성 인식 중에는 실시간 텍스트만 표시, 최종 결과 감지 시 처리
   useEffect(() => {
     if (appState === 'listening' && transcript) {
-      const timer = setTimeout(() => {
-        handleProcessing()
-      }, 500)
-      return () => clearTimeout(timer)
+      setDisplayText(transcript)
     }
   }, [transcript, appState])
 
@@ -137,17 +134,20 @@ export default function Home() {
     setAppState('processing')
 
     try {
-      // Chat API 호출
-      const aiResponse = await handleChatAPI(transcript)
-      setResponseText(aiResponse)
+      // Chat API 호출 (현재는 비활성화)
+      // const aiResponse = await handleChatAPI(transcript)
+      // setResponseText(aiResponse)
 
-      // TTS API 호출
-      const audio = await handleTTSAPI(aiResponse)
-      setAudioBlob(audio)
+      // TTS API 호출 (현재는 비활성화)
+      // const audio = await handleTTSAPI(aiResponse)
+      // setAudioBlob(audio)
 
-      // 음성 재생 시작
-      setAppState('speaking')
-      setIsAudioPlaying(true)
+      // 음성 재생 시작 (현재는 비활성화)
+      // setAppState('speaking')
+      // setIsAudioPlaying(true)
+
+      // STT만 사용 중이므로 다시 idle로
+      setAppState('idle')
     } catch (err) {
       console.error('Processing error:', err)
       setAppState('idle')
