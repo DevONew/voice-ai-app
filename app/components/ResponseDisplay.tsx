@@ -1,16 +1,33 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 interface ResponseDisplayProps {
   text: string
   isVisible: boolean
 }
 
 export default function ResponseDisplay({ text, isVisible }: ResponseDisplayProps) {
+  const [displayedText, setDisplayedText] = useState('')
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  useEffect(() => {
+    if (!isVisible) {
+      setDisplayedText('')
+      return
+    }
+
+    setIsAnimating(true)
+    setDisplayedText(text)
+  }, [text, isVisible])
+
   if (!isVisible) return null
 
   return (
-    <div className="w-full max-w-xs animate-fadeIn">
-      <p className="text-center text-lg text-black leading-relaxed break-words font-bold">{text}</p>
+    <div className={`w-full px-4 ${isAnimating ? 'animate-slideUp' : ''}`}>
+      <p className="text-center text-lg text-black leading-relaxed break-words font-black whitespace-normal">
+        {displayedText}
+      </p>
     </div>
   )
 }

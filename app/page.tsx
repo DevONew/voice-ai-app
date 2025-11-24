@@ -119,13 +119,6 @@ export default function Home() {
     }
   }, [appState, startRecording, stopRecording, resetRecorder])
 
-  // 음성 인식 중에는 실시간 텍스트만 표시, 최종 결과 감지 시 처리
-  useEffect(() => {
-    if (appState === 'listening' && transcript) {
-      setDisplayText(transcript)
-    }
-  }, [transcript, appState])
-
   const handleProcessing = useCallback(async () => {
     if (!transcript) {
       setAppState('idle')
@@ -165,9 +158,18 @@ export default function Home() {
 
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
-      {/* 상단 상태 텍스트 */}
-      <div className="flex-1 flex items-end justify-center mb-12">
-        <StatusText text={getStatusText()} isActive={appState !== 'idle'} />
+      {/* 상단 상태 텍스트 또는 받아쓰기 텍스트 */}
+      <div
+        className="flex-1 flex items-end justify-center overflow-y-auto max-h-[40vh] pb-4"
+        style={{
+          marginBottom: appState === 'listening' && displayText ? '8px' : '24px',
+        }}
+      >
+        {appState === 'listening' && displayText ? (
+          <ResponseDisplay text={displayText} isVisible={true} />
+        ) : (
+          <StatusText text={getStatusText()} isActive={appState !== 'idle'} />
+        )}
       </div>
 
       {/* 중앙 마이크 버튼 */}
@@ -180,7 +182,7 @@ export default function Home() {
         <div className="relative">
           <VoiceButton
             isAnimating={appState === 'listening'}
-            scale={appState === 'listening' ? 0.85 + (volumeLevel / 100) * 0.3 : 1}
+            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : 1}
             isListening={appState === 'listening'}
             onClick={handleButtonClick}
           />
@@ -189,9 +191,6 @@ export default function Home() {
 
       {/* 하단 텍스트 표시 영역 */}
       <div className="flex-1 flex items-start justify-center pt-4 px-4">
-        {appState === 'listening' && displayText && (
-          <ResponseDisplay text={displayText} isVisible={true} />
-        )}
         {appState === 'processing' && displayText && (
           <ResponseDisplay text={displayText} isVisible={true} />
         )}

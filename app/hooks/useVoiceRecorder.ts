@@ -58,6 +58,11 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
         throw new Error('브라우저에서 음성 인식을 지원하지 않습니다')
       }
 
+      // 기존 인식이 있으면 중지
+      if (recognitionRef.current) {
+        recognitionRef.current.abort()
+      }
+
       const recognition = new SpeechRecognition()
       recognitionRef.current = recognition
 
@@ -65,6 +70,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
       recognition.lang = 'ko-KR'
       recognition.continuous = true
       recognition.interimResults = true
+      recognition.maxAlternatives = 1
 
       // 오디오 볼륨 추적을 위한 AudioContext 설정
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -99,12 +105,12 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
         setTranscript(currentTranscript)
         console.log('🎤 STT 결과:', currentTranscript, finalTranscript ? '(최종)' : '(임시)')
 
-        // 최종 결과가 나오면 자동으로 종료
+        // 최종 결과가 나오면 자동으로 종료 (5초 대기)
         if (finalTranscript) {
           setTimeout(() => {
             recognition.stop()
             setIsRecording(false)
-          }, 500)
+          }, 5000)
         }
       }
 
@@ -130,7 +136,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
       setError(message)
       setIsRecording(false)
     }
-  }, [updateVolume, isRecording])
+  }, [updateVolume])
 
   const stopRecording = useCallback(async () => {
     if (recognitionRef.current && isRecording) {
