@@ -1,25 +1,35 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import AudioPlayer from './components/AudioPlayer'
 import ResponseDisplay from './components/ResponseDisplay'
 import StatusText from './components/StatusText'
 import VoiceButton from './components/VoiceButton'
+import ErrorDisplay from './components/ErrorDisplay'
+import PulseIndicator from './components/PulseIndicator'
 import { useVoiceRecorder } from './hooks/useVoiceRecorder'
-
-type AppState = 'idle' | 'listening' | 'processing' | 'speaking'
+import { useAppState } from './hooks/useAppState'
+import { useAudioAPI } from './hooks/useAudioAPI'
 
 export default function Home() {
-  const [appState, setAppState] = useState<AppState>('idle')
-  const [responseText, setResponseText] = useState('')
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
-  const [conversationHistory, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
-  const [displayText, setDisplayText] = useState('')
+  const {
+    appState,
+    displayText,
+    responseText,
+    conversationHistory,
+    audioBlob,
+    isAudioPlaying,
+    setAppState,
+    setDisplayText,
+    setResponseText,
+    setConversationHistory,
+    setAudioBlob,
+    setIsAudioPlaying,
+    getStatusText,
+  } = useAppState()
 
   const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorder()
-
-  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const { handleChatAPI, handleTTSAPI } = useAudioAPI()
 
   // transcript 업데이트될 때 displayText도 업데이트
   useEffect(() => {
@@ -27,97 +37,25 @@ export default function Home() {
       setDisplayText(transcript)
       console.log('📝 음성 인식:', transcript)
     }
-  }, [transcript, appState])
-
-  const getStatusText = () => {
-    switch (appState) {
-      case 'idle':
-        return '탭하여 시작'
-      case 'listening':
-        // 음성이 인식되면 빈 문자열, 아니면 "듣는 중..."
-        return displayText ? '' : '듣는 중...'
-      case 'processing':
-        return '생각하는 중...'
-      case 'speaking':
-        return responseText
-      default:
-        return '탭하여 시작'
-    }
-  }
-
-  const handleChatAPI = useCallback(
-    async (userMessage: string) => {
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: userMessage,
-            conversationHistory,
-          }),
-        })
-
-        if (!response.ok) throw new Error('Chat API 실패')
-
-        const data = await response.json()
-        const assistantMessage = data.response
-
-        // 대화 히스토리 업데이트
-        const newHistory = [
-          ...conversationHistory,
-          { role: 'user' as const, content: userMessage },
-          { role: 'assistant' as const, content: assistantMessage },
-        ]
-        setConversationHistory(newHistory)
-
-        return assistantMessage
-      } catch (err) {
-        console.error('Chat error:', err)
-        throw err
-      }
-    },
-    [conversationHistory]
-  )
-
-  const handleTTSAPI = useCallback(async (text: string) => {
-    try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
-
-      if (!response.ok) throw new Error('TTS API 실패')
-
-      const audioData = await response.blob()
-      return audioData
-    } catch (err) {
-      console.error('TTS error:', err)
-      throw err
-    }
-  }, [])
+  }, [transcript, appState, setDisplayText])
 
   const handleButtonClick = useCallback(async () => {
     if (appState === 'idle') {
-      // 음성 인식 시작
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
 
       try {
         await startRecording()
-        // 침묵 감지로 자동 중지됨 - 타이머 제거
       } catch (err) {
         console.error('Recording error:', err)
         setAppState('idle')
       }
     } else if (appState === 'listening') {
-      // 녹음 중지 (수동 중지)
-      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current)
       await stopRecording()
       handleProcessing()
     }
-  }, [appState, startRecording, stopRecording, resetRecorder])
+  }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText])
 
   const handleProcessing = useCallback(async () => {
     if (!transcript) {
@@ -129,7 +67,7 @@ export default function Home() {
 
     try {
       // Chat API 호출 (현재는 비활성화)
-      // const aiResponse = await handleChatAPI(transcript)
+      // const aiResponse = await handleChatAPI(transcript, conversationHistory, setConversationHistory)
       // setResponseText(aiResponse)
 
       // TTS API 호출 (현재는 비활성화)
@@ -146,7 +84,7 @@ export default function Home() {
       console.error('Processing error:', err)
       setAppState('idle')
     }
-  }, [transcript, handleChatAPI, handleTTSAPI])
+  }, [transcript, setAppState])
 
   const handleAudioPlayEnd = useCallback(() => {
     setIsAudioPlaying(false)
@@ -154,7 +92,7 @@ export default function Home() {
     setResponseText('')
     setDisplayText('')
     setAudioBlob(null)
-  }, [])
+  }, [setIsAudioPlaying, setAppState, setResponseText, setDisplayText, setAudioBlob])
 
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
@@ -168,7 +106,7 @@ export default function Home() {
         {appState === 'listening' && displayText ? (
           <ResponseDisplay text={displayText} isVisible={true} />
         ) : (
-          <StatusText text={getStatusText()} isActive={appState !== 'idle'} />
+          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={appState !== 'idle'} />
         )}
       </div>
 
@@ -209,22 +147,10 @@ export default function Home() {
       />
 
       {/* 에러 메시지 표시 */}
-      {error && (
-        <div className="fixed top-4 left-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
-          {error}
-        </div>
-      )}
+      <ErrorDisplay error={error} />
 
       {/* 매우 하단 상태 인디케이터 */}
-      {appState === 'listening' && (
-        <div className="pb-6">
-          <div className="flex gap-1 justify-center">
-            <div className="w-1 h-1 rounded-full bg-gray-400 animate-pulse" />
-            <div className="w-1 h-1 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0.1s' }} />
-            <div className="w-1 h-1 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
-          </div>
-        </div>
-      )}
+      <PulseIndicator isVisible={appState === 'listening'} />
     </div>
   )
 }
