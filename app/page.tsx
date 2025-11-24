@@ -34,7 +34,8 @@ export default function Home() {
       case 'idle':
         return '탭하여 시작'
       case 'listening':
-        return '듣는 중...'
+        // 음성이 인식되면 빈 문자열, 아니면 "듣는 중..."
+        return displayText ? '' : '듣는 중...'
       case 'processing':
         return '생각하는 중...'
       case 'speaking':
