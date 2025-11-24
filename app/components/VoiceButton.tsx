@@ -49,9 +49,10 @@ export default function VoiceButton({
         }}
       >
         <defs>
-          <radialGradient id="buttonGradient" cx="30%" cy="30%">
-            <stop offset="0%" stopColor={isListening ? '#000000' : '#000000'} />
-            <stop offset="100%" stopColor={isListening ? '#666666' : '#000000'} />
+          <radialGradient id="buttonGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#000000" />
+            <stop offset="70%" stopColor="#333333" />
+            <stop offset="100%" stopColor="#666666" />
           </radialGradient>
         </defs>
         <circle
