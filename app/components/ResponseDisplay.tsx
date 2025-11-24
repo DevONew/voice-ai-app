@@ -25,7 +25,7 @@ export default function ResponseDisplay({ text, isVisible }: ResponseDisplayProp
 
   return (
     <div className={`w-full px-4 ${isAnimating ? 'animate-slideUp' : ''}`}>
-      <p className="text-center text-lg text-black leading-relaxed break-words font-black whitespace-normal">
+      <p className="text-center text-xl sm:text-xl md:text-2xl text-black leading-relaxed break-words font-black whitespace-normal">
         {displayedText}
       </p>
     </div>
