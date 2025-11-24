@@ -7,7 +7,9 @@ export async function POST(request: Request) {
       return Response.json({ error: '오디오 파일이 필요합니다.' }, { status: 400 });
     }
 
-    // FormData 생성
+    console.log('📁 받은 오디오 파일:', audioFile.name, audioFile.type, audioFile.size);
+
+    // FormData로 전송 (ElevenLabs API는 multipart/form-data 요구)
     const sttFormData = new FormData();
     sttFormData.append('audio', audioFile);
 
@@ -20,22 +22,25 @@ export async function POST(request: Request) {
       body: sttFormData,
     });
 
+    console.log('🔄 ElevenLabs 응답 상태:', response.status);
+
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('ElevenLabs STT Error:', errorData);
+      console.error('❌ ElevenLabs STT Error:', response.status, errorData);
       return Response.json(
-        { error: 'STT 처리 중 오류가 발생했습니다.' },
+        { error: `STT 처리 중 오류가 발생했습니다. (${response.status})` },
         { status: response.status }
       );
     }
 
     const result = await response.json();
+    console.log('✅ STT API 응답:', result);
 
     return Response.json({
-      text: result.text || '',
+      text: result.text || result.transcription || '',
     });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ STT 서버 에러:', error);
     return Response.json(
       { error: '요청 처리 중 오류가 발생했습니다.' },
       { status: 500 }

@@ -37,6 +37,25 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     animationFrameRef.current = requestAnimationFrame(updateVolume)
   }, [])
 
+  const handleSilence = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop()
+      setIsRecording(false)
+
+      streamRef.current?.getTracks().forEach((track) => track.stop())
+
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {})
+      }
+
+      setVolumeLevel(0)
+    }
+  }, [isRecording])
+
   const startRecording = useCallback(async () => {
     try {
       setError(null)
@@ -98,12 +117,39 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
       mediaRecorder.start()
       setIsRecording(true)
       updateVolume()
+
+      // 침묵 감지 로직 (3초 동안 음성이 없으면 자동 중지)
+      let silenceStart = Date.now()
+      const silenceThreshold = 5 // 데시벨 임계값
+      const silenceDuration = 2000 // 2초 침묵
+
+      const checkSilence = () => {
+        if (!analyserRef.current) return
+
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+        analyserRef.current.getByteFrequencyData(dataArray)
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length
+
+        if (average < silenceThreshold) {
+          if (Date.now() - silenceStart > silenceDuration) {
+            console.log('🔇 침묵 감지, 녹음 종료')
+            handleSilence()
+            return
+          }
+        } else {
+          silenceStart = Date.now()
+        }
+
+        animationFrameRef.current = requestAnimationFrame(checkSilence)
+      }
+
+      animationFrameRef.current = requestAnimationFrame(checkSilence)
     } catch (err) {
       const message = err instanceof Error ? err.message : '마이크 접근 실패'
       setError(message)
       setIsRecording(false)
     }
-  }, [updateVolume])
+  }, [updateVolume, handleSilence])
 
   const stopRecording = useCallback(async () => {
     if (mediaRecorderRef.current && isRecording) {

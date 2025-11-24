@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import AudioPlayer from './components/AudioPlayer'
 import ResponseDisplay from './components/ResponseDisplay'
 import StatusText from './components/StatusText'
@@ -21,12 +21,20 @@ export default function Home() {
 
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // transcript 업데이트될 때 displayText도 업데이트
+  useEffect(() => {
+    if (appState === 'listening' && transcript) {
+      setDisplayText(transcript)
+      console.log('📝 음성 인식:', transcript)
+    }
+  }, [transcript, appState])
+
   const getStatusText = () => {
     switch (appState) {
       case 'idle':
         return '탭하여 시작'
       case 'listening':
-        return transcript || '듣는 중...'
+        return '듣는 중...'
       case 'processing':
         return '생각하는 중...'
       case 'speaking':
@@ -97,23 +105,28 @@ export default function Home() {
 
       try {
         await startRecording()
-
-        // 10초 후 자동 중지
-        recordingTimeoutRef.current = setTimeout(async () => {
-          await stopRecording()
-          handleProcessing()
-        }, 10000)
+        // 침묵 감지로 자동 중지됨 - 타이머 제거
       } catch (err) {
         console.error('Recording error:', err)
         setAppState('idle')
       }
     } else if (appState === 'listening') {
-      // 녹음 중지
+      // 녹음 중지 (수동 중지)
       if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current)
       await stopRecording()
       handleProcessing()
     }
   }, [appState, startRecording, stopRecording, resetRecorder])
+
+  // 음성 인식 완료 후 자동으로 처리 시작
+  useEffect(() => {
+    if (appState === 'listening' && transcript) {
+      const timer = setTimeout(() => {
+        handleProcessing()
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [transcript, appState])
 
   const handleProcessing = useCallback(async () => {
     if (!transcript) {
@@ -122,7 +135,6 @@ export default function Home() {
     }
 
     setAppState('processing')
-    setDisplayText(transcript)
 
     try {
       // Chat API 호출
