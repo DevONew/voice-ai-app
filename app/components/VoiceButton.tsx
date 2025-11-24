@@ -19,22 +19,51 @@ export default function VoiceButton({
   onClick,
   children,
 }: VoiceButtonProps) {
+  const size = isBottom ? 80 : 200
+  const radius = size / 2
+
   return (
     <button
       onClick={onClick}
-      className="relative rounded-full shadow-2xl focus:outline-none z-10 active:scale-95 cursor-pointer border-0"
+      className="focus:outline-none z-10 cursor-pointer border-0 bg-transparent p-0"
       style={{
-        width: isBottom ? '80px' : '200px',
-        height: isBottom ? '80px' : '200px',
-        background: isListening ? 'radial-gradient(circle, #000000 0%, #999999 100%)' : '#000000',
+        width: `${size}px`,
+        height: `${size}px`,
         transform: `scale(${isAnimating ? scale : 1})`,
-        transition: isAnimating ? 'transform 0.1s ease-out' : 'transform 0.2s ease-in-out, background 0.3s ease-in-out',
+        transition: isAnimating ? 'transform 0.1s ease-out' : 'transform 0.2s ease-in-out',
         border: 'none',
         outline: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
       aria-label="마이크 버튼"
       type="button"
     >
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        style={{
+          filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.3))',
+        }}
+      >
+        <defs>
+          <radialGradient id="buttonGradient" cx="30%" cy="30%">
+            <stop offset="0%" stopColor={isListening ? '#000000' : '#000000'} />
+            <stop offset="100%" stopColor={isListening ? '#666666' : '#000000'} />
+          </radialGradient>
+        </defs>
+        <circle
+          cx={radius}
+          cy={radius}
+          r={radius}
+          fill={isListening ? 'url(#buttonGradient)' : '#000000'}
+          style={{
+            transition: 'fill 0.3s ease-in-out',
+          }}
+        />
+      </svg>
       {children}
     </button>
   )

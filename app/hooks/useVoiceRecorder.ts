@@ -86,9 +86,12 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
           }
 
           const data = await response.json()
+          console.log('🎤 STT 결과:', data.text)
           setTranscript(data.text || '')
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'STT 오류 발생')
+          const errorMsg = err instanceof Error ? err.message : 'STT 오류 발생'
+          console.error('❌ STT 에러:', errorMsg)
+          setError(errorMsg)
         }
       }
 
