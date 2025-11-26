@@ -57,6 +57,7 @@ export default function AudioPlayer({
 
     const url = URL.createObjectURL(audioBlob)
     audioRef.current.src = url
+    console.log('🎵 오디오 객체 URL 생성:', url)
 
     return () => {
       URL.revokeObjectURL(url)
@@ -67,10 +68,12 @@ export default function AudioPlayer({
     if (!audioRef.current) return
 
     if (isPlaying) {
+      console.log('🎵 오디오 재생 시작')
       setupAudioAnalyser()
-      audioRef.current.play().catch((err) => console.error('Play error:', err))
+      audioRef.current.play().catch((err) => console.error('❌ Play error:', err))
       updateVolume()
     } else {
+      console.log('⏹️ 오디오 일시정지')
       audioRef.current.pause()
       audioRef.current.currentTime = 0
       setScale(1)

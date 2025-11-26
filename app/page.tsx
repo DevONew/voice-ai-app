@@ -42,51 +42,77 @@ export default function Home() {
 
   const handleButtonClick = useCallback(async () => {
     if (appState === 'idle') {
+      console.log('🎯 상태 변경: idle → listening')
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
 
       try {
         await startRecording()
+        console.log('🎤 음성 인식 시작')
       } catch (err) {
-        console.error('Recording error:', err)
+        console.error('❌ Recording error:', err)
         setAppState('idle')
       }
     } else if (appState === 'listening') {
+      console.log('🎯 상태 변경: listening → processing')
       await stopRecording()
+      console.log('⏹️ 음성 인식 중지')
       handleProcessing()
     }
   }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText])
 
   const handleProcessing = useCallback(async () => {
     if (!transcript) {
+      console.log('⚠️ transcript 없음, idle 상태로 복귀')
       setAppState('idle')
       return
     }
 
+    console.log('🎯 상태 변경: listening → processing')
+    console.log('📤 사용자 메시지 전송:', transcript)
     setAppState('processing')
 
     try {
       // Chat API 호출
+      console.log('🔗 Chat API 호출 중...')
       const aiResponse = await handleChatAPI(transcript, conversationHistory, setConversationHistory)
       setResponseText(aiResponse)
-      console.log('🤖 AI 응답:', aiResponse)
+      console.log('✅ AI 응답 수신:', aiResponse)
+      console.log('💬 대화 히스토리 업데이트 완료, 총 메시지 수:', conversationHistory.length + 2)
+
+      // TTS API 호출
+      console.log('🔗 TTS API 호출 중...')
+      const audioBlob = await handleTTSAPI(aiResponse)
+      console.log('✅ 음성 파일 수신, 크기:', audioBlob.size, 'bytes')
+      setAudioBlob(audioBlob)
+      console.log('🔊 음성 생성 완료, 재생 준비')
 
       // 응답 상태로 전환
+      console.log('🎯 상태 변경: processing → speaking')
       setAppState('speaking')
       setIsAudioPlaying(true)
+      console.log('▶️ 음성 재생 시작')
     } catch (err) {
-      console.error('Processing error:', err)
+      console.error('❌ Processing error:', err)
       setAppState('idle')
     }
-  }, [transcript, setAppState, handleChatAPI, conversationHistory, setConversationHistory])
+  }, [transcript, setAppState, handleChatAPI, handleTTSAPI, conversationHistory, setConversationHistory, setResponseText, setAudioBlob, setIsAudioPlaying])
 
   const handleAudioPlayEnd = useCallback(() => {
+    console.log('⏹️ 음성 재생 완료')
     setIsAudioPlaying(false)
-    setAppState('idle')
-    setResponseText('')
-    setDisplayText('')
-    setAudioBlob(null)
+
+    // 2초 대기 후 자동 복귀
+    console.log('⏳ 2초 대기 중...')
+    setTimeout(() => {
+      console.log('🎯 상태 변경: speaking → idle')
+      setAppState('idle')
+      setResponseText('')
+      setDisplayText('')
+      setAudioBlob(null)
+      console.log('✅ 초기 상태로 복귀 완료')
+    }, 2000)
   }, [setIsAudioPlaying, setAppState, setResponseText, setDisplayText, setAudioBlob])
 
   return (
@@ -116,6 +142,7 @@ export default function Home() {
         <ChatContainer
           messages={conversationHistory}
           isVisible={appState === 'speaking'}
+          isTyping={appState === 'speaking'}
         />
 
         {/* 마이크 버튼 */}
