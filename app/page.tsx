@@ -30,7 +30,7 @@ export default function Home() {
   } = useAppState()
 
   const { transcript, volumeLevel, error, isFinalTranscript, startRecording, stopRecording, resetRecorder } = useVoiceRecorder()
-  const { handleChatAPI, handleTTSAPI } = useAudioAPI()
+  const { handleChatAPI } = useAudioAPI()
 
   // transcript 업데이트될 때 displayText도 업데이트
   useEffect(() => {
@@ -88,23 +88,23 @@ export default function Home() {
       console.log('✅ AI 응답 수신:', aiResponse)
       console.log('💬 대화 히스토리 업데이트 완료, 총 메시지 수:', conversationHistory.length + 2)
 
-      // TTS API 호출
-      console.log('🔗 TTS API 호출 중...')
-      const audioBlob = await handleTTSAPI(aiResponse)
-      console.log('✅ 음성 파일 수신, 크기:', audioBlob.size, 'bytes')
-      setAudioBlob(audioBlob)
-      console.log('🔊 음성 생성 완료, 재생 준비')
+      // TTS API 호출 (임시 주석 처리)
+      // console.log('🔗 TTS API 호출 중...')
+      // const audioBlob = await handleTTSAPI(aiResponse)
+      // console.log('✅ 음성 파일 수신, 크기:', audioBlob.size, 'bytes')
+      // setAudioBlob(audioBlob)
+      // console.log('🔊 음성 생성 완료, 재생 준비')
 
       // 응답 상태로 전환
       console.log('🎯 상태 변경: processing → speaking')
       setAppState('speaking')
-      setIsAudioPlaying(true)
-      console.log('▶️ 음성 재생 시작')
+      // setIsAudioPlaying(true)
+      // console.log('▶️ 음성 재생 시작')
     } catch (err) {
       console.error('❌ Processing error:', err)
       setAppState('idle')
     }
-  }, [transcript, setAppState, handleChatAPI, handleTTSAPI, conversationHistory, setConversationHistory, setResponseText, setAudioBlob, setIsAudioPlaying])
+  }, [transcript, setAppState, handleChatAPI, conversationHistory, setConversationHistory, setResponseText])
 
   // processing 상태일 때 API 호출
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function Home() {
         <div className="relative z-10">
           <VoiceButton
             isAnimating={appState === 'listening'}
-            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : (appState === 'speaking' || appState === 'processing') ? 0.4 : 1}
+            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : (appState === 'speaking' || appState === 'processing') ? 0.25 : 1}
             isListening={appState === 'listening'}
             onClick={handleButtonClick}
           />
