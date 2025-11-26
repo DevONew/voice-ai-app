@@ -149,7 +149,7 @@ export default function Home() {
       <div
         className="flex-1 flex items-center justify-center transition-all duration-500 relative"
         style={{
-          transform: appState === 'speaking' ? 'translateY(80px)' : 'translateY(0)',
+          transform: (appState === 'speaking' || appState === 'processing') ? 'translateY(80px)' : 'translateY(0)',
         }}
       >
         {/* 채팅 컨테이너 */}
@@ -163,7 +163,7 @@ export default function Home() {
         <div className="relative z-10">
           <VoiceButton
             isAnimating={appState === 'listening'}
-            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : appState === 'speaking' ? 0.4 : 1}
+            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : (appState === 'speaking' || appState === 'processing') ? 0.4 : 1}
             isListening={appState === 'listening'}
             onClick={handleButtonClick}
           />
