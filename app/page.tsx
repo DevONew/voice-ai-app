@@ -142,9 +142,9 @@ export default function Home() {
       >
         {appState === 'listening' ? (
           <ResponseDisplay text={displayText || '듣는 중...'} isVisible={true} />
-        ) : appState !== 'idle' ? (
-          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={true} />
-        ) : null}
+        ) : (
+          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={appState !== 'idle'} />
+        )}
       </div>
 
       {/* 중앙 마이크 버튼 */}
