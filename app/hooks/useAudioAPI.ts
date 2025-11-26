@@ -1,15 +1,16 @@
 'use client'
 
 import { useCallback } from 'react'
+import { ConversationHistory } from '../types'
 
 interface UseAudioAPIReturn {
-  handleChatAPI: (userMessage: string, conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>, setConversationHistory: (history: Array<{ role: 'user' | 'assistant'; content: string }>) => void) => Promise<string>
+  handleChatAPI: (userMessage: string, conversationHistory: ConversationHistory, setConversationHistory: (history: ConversationHistory) => void) => Promise<string>
   handleTTSAPI: (text: string) => Promise<Blob>
 }
 
 export function useAudioAPI(): UseAudioAPIReturn {
   const handleChatAPI = useCallback(
-    async (userMessage: string, conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>, setConversationHistory: (history: Array<{ role: 'user' | 'assistant'; content: string }>) => void) => {
+    async (userMessage: string, conversationHistory: ConversationHistory, setConversationHistory: (history: ConversationHistory) => void) => {
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',

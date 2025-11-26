@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
+import { ConversationHistory } from '../types'
 
 type AppState = 'idle' | 'listening' | 'processing' | 'speaking'
 
@@ -8,13 +9,13 @@ interface UseAppStateReturn {
   appState: AppState
   displayText: string
   responseText: string
-  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>
+  conversationHistory: ConversationHistory
   audioBlob: Blob | null
   isAudioPlaying: boolean
   setAppState: (state: AppState) => void
   setDisplayText: (text: string) => void
   setResponseText: (text: string) => void
-  setConversationHistory: (history: Array<{ role: 'user' | 'assistant'; content: string }>) => void
+  setConversationHistory: (history: ConversationHistory) => void
   setAudioBlob: (blob: Blob | null) => void
   setIsAudioPlaying: (playing: boolean) => void
   getStatusText: (appState: AppState, displayText: string, responseText: string) => string
@@ -24,7 +25,7 @@ export function useAppState(): UseAppStateReturn {
   const [appState, setAppState] = useState<AppState>('idle')
   const [displayText, setDisplayText] = useState('')
   const [responseText, setResponseText] = useState('')
-  const [conversationHistory, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
+  const [conversationHistory, setConversationHistory] = useState<ConversationHistory>([])
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 

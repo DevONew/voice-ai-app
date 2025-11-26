@@ -107,13 +107,13 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
         setTranscript(currentTranscript)
         console.log('🎤 STT 결과:', currentTranscript, finalTranscript ? '(최종)' : '(임시)')
 
-        // 최종 결과가 나오면 자동으로 종료 (1초 대기)
+        // 최종 결과가 나오면 자동으로 종료 (3초 대기)
         if (finalTranscript) {
           setIsFinalTranscript(true)
           setTimeout(() => {
             recognition.stop()
             setIsRecording(false)
-          }, 1000)
+          }, 3000)
         }
       }
 

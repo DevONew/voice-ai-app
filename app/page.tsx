@@ -36,15 +36,12 @@ export default function Home() {
   useEffect(() => {
     if (appState === 'listening' && transcript) {
       setDisplayText(transcript)
-      console.log('📝 음성 인식:', transcript)
     }
   }, [transcript, appState, setDisplayText])
 
   // 최종 결과가 나왔을 때 자동으로 처리 시작
   useEffect(() => {
     if (isFinalTranscript && appState === 'listening' && transcript) {
-      console.log('✅ 최종 음성 인식 완료, 자동 처리 시작')
-      // 상태를 변경하고 1.5초 후에 처리 시작 (안정성을 위해 약간의 딜레이)
       setTimeout(() => {
         if (appState === 'listening') {
           stopRecording()
@@ -55,22 +52,17 @@ export default function Home() {
 
   const handleButtonClick = useCallback(async () => {
     if (appState === 'idle') {
-      console.log('🎯 상태 변경: idle → listening')
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
 
       try {
         await startRecording()
-        console.log('🎤 음성 인식 시작')
       } catch (err) {
-        console.error('❌ Recording error:', err)
         setAppState('idle')
       }
     } else if (appState === 'listening') {
-      console.log('🎯 상태 변경: listening → processing')
       await stopRecording()
-      console.log('⏹️ 음성 인식 중지')
       handleProcessing()
     }
   }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText])
@@ -184,9 +176,7 @@ export default function Home() {
       <AudioPlayer
         audioBlob={audioBlob}
         isPlaying={isAudioPlaying}
-        onPlayStart={() => {}}
         onPlayEnd={handleAudioPlayEnd}
-        onVolumeChange={() => {}}
       />
 
       {/* 에러 메시지 표시 */}

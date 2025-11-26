@@ -6,17 +6,13 @@ import VoiceButton from './VoiceButton'
 interface AudioPlayerProps {
   audioBlob: Blob | null
   isPlaying: boolean
-  onPlayStart: () => void
   onPlayEnd: () => void
-  onVolumeChange: (volume: number) => void
 }
 
 export default function AudioPlayer({
   audioBlob,
   isPlaying,
-  onPlayStart,
   onPlayEnd,
-  onVolumeChange,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -47,10 +43,9 @@ export default function AudioPlayer({
     // 볼륨 기반 스케일 계산 (85% ~ 115%)
     const newScale = 0.85 + (normalizedVolume / 100) * 0.3
     setScale(newScale)
-    onVolumeChange(normalizedVolume)
 
     requestAnimationFrame(updateVolume)
-  }, [isPlaying, onVolumeChange])
+  }, [isPlaying])
 
   useEffect(() => {
     if (!audioRef.current || !audioBlob) return
