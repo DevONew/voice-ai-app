@@ -7,6 +7,7 @@ import StatusText from './components/StatusText'
 import VoiceButton from './components/VoiceButton'
 import ErrorDisplay from './components/ErrorDisplay'
 import PulseIndicator from './components/PulseIndicator'
+import ChatContainer from './components/ChatContainer'
 import { useVoiceRecorder } from './hooks/useVoiceRecorder'
 import { useAppState } from './hooks/useAppState'
 import { useAudioAPI } from './hooks/useAudioAPI'
@@ -66,25 +67,19 @@ export default function Home() {
     setAppState('processing')
 
     try {
-      // Chat API 호출 (현재는 비활성화)
-      // const aiResponse = await handleChatAPI(transcript, conversationHistory, setConversationHistory)
-      // setResponseText(aiResponse)
+      // Chat API 호출
+      const aiResponse = await handleChatAPI(transcript, conversationHistory, setConversationHistory)
+      setResponseText(aiResponse)
+      console.log('🤖 AI 응답:', aiResponse)
 
-      // TTS API 호출 (현재는 비활성화)
-      // const audio = await handleTTSAPI(aiResponse)
-      // setAudioBlob(audio)
-
-      // 음성 재생 시작 (현재는 비활성화)
-      // setAppState('speaking')
-      // setIsAudioPlaying(true)
-
-      // STT만 사용 중이므로 다시 idle로
-      setAppState('idle')
+      // 응답 상태로 전환
+      setAppState('speaking')
+      setIsAudioPlaying(true)
     } catch (err) {
       console.error('Processing error:', err)
       setAppState('idle')
     }
-  }, [transcript, setAppState])
+  }, [transcript, setAppState, handleChatAPI, conversationHistory, setConversationHistory])
 
   const handleAudioPlayEnd = useCallback(() => {
     setIsAudioPlaying(false)
@@ -112,12 +107,19 @@ export default function Home() {
 
       {/* 중앙 마이크 버튼 */}
       <div
-        className="flex-1 flex items-center justify-center transition-all duration-500"
+        className="flex-1 flex items-center justify-center transition-all duration-500 relative"
         style={{
           transform: appState === 'speaking' ? 'translateY(80px)' : 'translateY(0)',
         }}
       >
-        <div className="relative">
+        {/* 채팅 컨테이너 */}
+        <ChatContainer
+          messages={conversationHistory}
+          isVisible={appState === 'speaking'}
+        />
+
+        {/* 마이크 버튼 */}
+        <div className="relative z-10">
           <VoiceButton
             isAnimating={appState === 'listening'}
             scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : 1}
