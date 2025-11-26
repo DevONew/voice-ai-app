@@ -138,47 +138,45 @@ export default function Home() {
           marginBottom: appState === 'listening' ? '8px' : '24px',
         }}
       >
-        {appState === 'listening' ? (
+        {appState === 'listening' && (
           <ResponseDisplay text={displayText || '듣는 중...'} isVisible={true} />
-        ) : (
-          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={appState !== 'idle'} />
+        )}
+        {appState === 'idle' && (
+          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={false} />
+        )}
+        {appState === 'processing' && (
+          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={true} />
+        )}
+        {appState === 'speaking' && responseText && (
+          <ResponseDisplay text={responseText} isVisible={true} />
         )}
       </div>
 
-      {/* 중앙 마이크 버튼 */}
-      <div
-        className="flex-1 flex items-center justify-center transition-all duration-500 relative"
-        style={{
-          transform: (appState === 'speaking' || appState === 'processing') ? 'translateY(80px)' : 'translateY(0)',
-        }}
-      >
+      {/* 중앙 채팅 컨테이너 */}
+      <div className="flex-1 flex items-center justify-center relative w-full">
         {/* 채팅 컨테이너 */}
         <ChatContainer
           messages={conversationHistory}
           isVisible={appState === 'speaking'}
           isTyping={appState === 'speaking'}
         />
-
-        {/* 마이크 버튼 */}
-        <div className="relative z-10">
-          <VoiceButton
-            isAnimating={appState === 'listening'}
-            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : (appState === 'speaking' || appState === 'processing') ? 0.25 : 1}
-            isListening={appState === 'listening'}
-            onClick={handleButtonClick}
-          />
-        </div>
       </div>
 
-      {/* 하단 텍스트 표시 영역 */}
-      <div className="flex-1 flex items-start justify-center pt-4 px-4">
-        {appState === 'processing' && displayText && (
-          <ResponseDisplay text={displayText} isVisible={true} />
-        )}
-        {appState === 'speaking' && responseText && (
-          <ResponseDisplay text={responseText} isVisible={true} />
-        )}
+      {/* 마이크 버튼 - 상태별로 위치 조정 */}
+      <div
+        className="absolute left-1/2 transform -translate-x-1/2 z-10 transition-all duration-500"
+        style={{
+          bottom: appState === 'speaking' ? '20px' : appState === 'processing' ? '80px' : '150px',
+        }}
+      >
+        <VoiceButton
+          isAnimating={appState === 'listening'}
+          scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : (appState === 'speaking' || appState === 'processing') ? 0.25 : 1}
+          isListening={appState === 'listening'}
+          onClick={handleButtonClick}
+        />
       </div>
+
 
       {/* 음성 재생 컴포넌트 */}
       <AudioPlayer
