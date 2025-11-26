@@ -34,7 +34,7 @@ export default function ResponseDisplay({ text, isVisible }: ResponseDisplayProp
   if (!isVisible) return null
 
   return (
-    <div className={`w-full px-[20px] ${isAnimating ? 'animate-slideUp' : ''}`}>
+    <div className={`w-full ${isAnimating ? 'animate-slideUp' : ''}`}>
       <p className="text-center text-xl sm:text-xl md:text-2xl text-black leading-8 break-words font-black whitespace-pre-wrap">
         {displayedText}
       </p>
