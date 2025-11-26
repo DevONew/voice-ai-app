@@ -21,6 +21,7 @@ export default function VoiceButton({
 }: VoiceButtonProps) {
   const size = isBottom ? 80 : 200
   const radius = size / 2
+  const clampedScale = Math.min(scale, 1.1)
 
   return (
     <button
@@ -29,7 +30,7 @@ export default function VoiceButton({
       style={{
         width: `${size}px`,
         height: `${size}px`,
-        transform: `scale(${isAnimating ? scale : 1})`,
+        transform: `scale(${isAnimating ? clampedScale : 0.8})`,
         transition: isAnimating ? 'transform 0.1s ease-out' : 'transform 0.2s ease-in-out',
         border: 'none',
         outline: 'none',

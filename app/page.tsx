@@ -132,30 +132,31 @@ export default function Home() {
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
       {/* 상단 상태 텍스트 또는 받아쓰기 텍스트 */}
-      <div
-        className="flex-1 flex items-end justify-center overflow-y-auto max-h-[40vh] pb-4"
-        style={{
-          marginBottom: appState === 'listening' ? '8px' : '24px',
-        }}
-      >
-        {appState === 'listening' && (
-          <ResponseDisplay text={displayText || '듣는 중...'} isVisible={true} />
-        )}
-        {appState === 'idle' && (
-          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={false} />
-        )}
-        {appState === 'processing' && (
-          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={true} />
-        )}
-        {appState === 'speaking' && responseText && (
-          <ResponseDisplay text={responseText} isVisible={true} />
-        )}
-      </div>
+      {appState !== 'idle' && appState !== 'listening' && (
+        <div
+          className="flex items-end justify-center overflow-y-auto max-h-[40vh] pb-4"
+          style={{
+            marginBottom: '24px',
+          }}
+        >
+          {appState === 'processing' && (
+            <StatusText text={getStatusText(appState, displayText, responseText)} isActive={true} />
+          )}
+          {appState === 'speaking' && responseText && (
+            <ResponseDisplay text={responseText} isVisible={true} />
+          )}
+        </div>
+      )}
 
       {/* 중앙 영역 */}
       {(appState === 'idle' || appState === 'listening') ? (
         // idle/listening: 원이 중앙에
-        <div className="flex-1 flex items-center justify-center relative w-full">
+        <div className="flex-1 flex flex-col items-center justify-center relative w-full">
+          {appState === 'idle' && (
+            <div className="mb-12">
+              <p className="text-base sm:text-base md:text-xl font-black text-gray-600">{getStatusText(appState, displayText, responseText)}</p>
+            </div>
+          )}
           <div className="relative z-10">
             <VoiceButton
               isAnimating={appState === 'listening'}
