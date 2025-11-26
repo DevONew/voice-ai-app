@@ -29,7 +29,7 @@ export default function Home() {
     getStatusText,
   } = useAppState()
 
-  const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorder()
+  const { transcript, volumeLevel, error, isFinalTranscript, startRecording, stopRecording, resetRecorder } = useVoiceRecorder()
   const { handleChatAPI, handleTTSAPI } = useAudioAPI()
 
   // transcript 업데이트될 때 displayText도 업데이트
@@ -39,6 +39,19 @@ export default function Home() {
       console.log('📝 음성 인식:', transcript)
     }
   }, [transcript, appState, setDisplayText])
+
+  // 최종 결과가 나왔을 때 자동으로 처리 시작
+  useEffect(() => {
+    if (isFinalTranscript && appState === 'listening' && transcript) {
+      console.log('✅ 최종 음성 인식 완료, 자동 처리 시작')
+      // 상태를 변경하고 1.5초 후에 처리 시작 (안정성을 위해 약간의 딜레이)
+      setTimeout(() => {
+        if (appState === 'listening') {
+          stopRecording()
+        }
+      }, 500)
+    }
+  }, [isFinalTranscript, appState, transcript, stopRecording])
 
   const handleButtonClick = useCallback(async () => {
     if (appState === 'idle') {
@@ -122,13 +135,14 @@ export default function Home() {
         className="flex-1 flex items-end justify-center overflow-y-auto max-h-[40vh] pb-4"
         style={{
           marginBottom: appState === 'listening' && displayText ? '8px' : '24px',
+          minHeight: appState === 'listening' && displayText ? 'auto' : '0',
         }}
       >
         {appState === 'listening' && displayText ? (
           <ResponseDisplay text={displayText} isVisible={true} />
-        ) : (
+        ) : appState !== 'listening' ? (
           <StatusText text={getStatusText(appState, displayText, responseText)} isActive={appState !== 'idle'} />
-        )}
+        ) : null}
       </div>
 
       {/* 중앙 마이크 버튼 */}
@@ -149,7 +163,7 @@ export default function Home() {
         <div className="relative z-10">
           <VoiceButton
             isAnimating={appState === 'listening'}
-            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : 1}
+            scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : appState === 'speaking' ? 0.4 : 1}
             isListening={appState === 'listening'}
             onClick={handleButtonClick}
           />

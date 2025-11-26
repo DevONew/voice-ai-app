@@ -7,6 +7,7 @@ interface UseVoiceRecorderReturn {
   transcript: string
   volumeLevel: number
   error: string | null
+  isFinalTranscript: boolean
   startRecording: () => Promise<void>
   stopRecording: () => Promise<void>
   resetRecorder: () => void
@@ -25,6 +26,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
   const [transcript, setTranscript] = useState('')
   const [volumeLevel, setVolumeLevel] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [isFinalTranscript, setIsFinalTranscript] = useState(false)
 
   const recognitionRef = useRef<any>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -105,12 +107,13 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
         setTranscript(currentTranscript)
         console.log('🎤 STT 결과:', currentTranscript, finalTranscript ? '(최종)' : '(임시)')
 
-        // 최종 결과가 나오면 자동으로 종료 (5초 대기)
+        // 최종 결과가 나오면 자동으로 종료 (1초 대기)
         if (finalTranscript) {
+          setIsFinalTranscript(true)
           setTimeout(() => {
             recognition.stop()
             setIsRecording(false)
-          }, 5000)
+          }, 1000)
         }
       }
 
@@ -164,6 +167,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     setTranscript('')
     setVolumeLevel(0)
     setError(null)
+    setIsFinalTranscript(false)
   }, [])
 
   return {
@@ -171,6 +175,7 @@ export function useVoiceRecorder(): UseVoiceRecorderReturn {
     transcript,
     volumeLevel,
     error,
+    isFinalTranscript,
     startRecording,
     stopRecording,
     resetRecorder,
