@@ -42,28 +42,32 @@ export default function Home() {
   // 최종 결과가 나왔을 때 자동으로 처리 시작
   useEffect(() => {
     if (isFinalTranscript && appState === 'listening' && transcript) {
-      setTimeout(() => {
-        if (appState === 'listening') {
-          stopRecording()
-        }
+      console.log('✅ 최종 음성 인식 완료:', transcript)
+      setTimeout(async () => {
+        await stopRecording()
+        setAppState('processing')
       }, 500)
     }
-  }, [isFinalTranscript, appState, transcript, stopRecording])
+  }, [isFinalTranscript, appState, transcript, stopRecording, setAppState])
 
   const handleButtonClick = useCallback(async () => {
     if (appState === 'idle') {
+      console.log('🎯 상태 변경: idle → listening')
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
 
       try {
         await startRecording()
+        console.log('🎤 음성 인식 시작')
       } catch (err) {
+        console.error('❌ Recording error:', err)
         setAppState('idle')
       }
     } else if (appState === 'listening') {
+      console.log('🎯 상태 변경: listening → processing (수동 중지)')
       await stopRecording()
-      handleProcessing()
+      console.log('⏹️ 음성 인식 중지')
     }
   }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText])
 
@@ -104,6 +108,13 @@ export default function Home() {
     }
   }, [transcript, setAppState, handleChatAPI, handleTTSAPI, conversationHistory, setConversationHistory, setResponseText, setAudioBlob, setIsAudioPlaying])
 
+  // processing 상태일 때 API 호출
+  useEffect(() => {
+    if (appState === 'processing' && transcript) {
+      handleProcessing()
+    }
+  }, [appState, transcript, handleProcessing])
+
   const handleAudioPlayEnd = useCallback(() => {
     console.log('⏹️ 음성 재생 완료')
     setIsAudioPlaying(false)
@@ -126,14 +137,13 @@ export default function Home() {
       <div
         className="flex-1 flex items-end justify-center overflow-y-auto max-h-[40vh] pb-4"
         style={{
-          marginBottom: appState === 'listening' && displayText ? '8px' : '24px',
-          minHeight: appState === 'listening' && displayText ? 'auto' : '0',
+          marginBottom: appState === 'listening' ? '8px' : '24px',
         }}
       >
-        {appState === 'listening' && displayText ? (
-          <ResponseDisplay text={displayText} isVisible={true} />
-        ) : appState !== 'listening' ? (
-          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={appState !== 'idle'} />
+        {appState === 'listening' ? (
+          <ResponseDisplay text={displayText || '듣는 중...'} isVisible={true} />
+        ) : appState !== 'idle' ? (
+          <StatusText text={getStatusText(appState, displayText, responseText)} isActive={true} />
         ) : null}
       </div>
 
