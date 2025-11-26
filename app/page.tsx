@@ -78,9 +78,7 @@ export default function Home() {
       return
     }
 
-    console.log('🎯 상태 변경: listening → processing')
     console.log('📤 사용자 메시지 전송:', transcript)
-    setAppState('processing')
 
     try {
       // Chat API 호출
