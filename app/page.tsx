@@ -1,13 +1,12 @@
 'use client'
 
 import { useCallback, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import AudioPlayer from './components/AudioPlayer'
 import ResponseDisplay from './components/ResponseDisplay'
-import StatusText from './components/StatusText'
 import VoiceButton from './components/VoiceButton'
 import ErrorDisplay from './components/ErrorDisplay'
 import PulseIndicator from './components/PulseIndicator'
-import ChatContainer from './components/ChatContainer'
 import { useVoiceRecorder } from './hooks/useVoiceRecorder'
 import { useAppState } from './hooks/useAppState'
 import { useAudioAPI } from './hooks/useAudioAPI'
@@ -15,7 +14,6 @@ import { useAudioAPI } from './hooks/useAudioAPI'
 export default function Home() {
   const {
     appState,
-    displayText,
     responseText,
     conversationHistory,
     audioBlob,
@@ -26,7 +24,6 @@ export default function Home() {
     setConversationHistory,
     setAudioBlob,
     setIsAudioPlaying,
-    getStatusText,
   } = useAppState()
 
   const { transcript, volumeLevel, error, isFinalTranscript, startRecording, stopRecording, resetRecorder } = useVoiceRecorder()
@@ -68,8 +65,22 @@ export default function Home() {
       console.log('🎯 상태 변경: listening → processing (수동 중지)')
       await stopRecording()
       console.log('⏹️ 음성 인식 중지')
+    } else if (appState === 'speaking' || appState === 'processing') {
+      console.log('🎯 상태 변경: speaking/processing → listening')
+      setAppState('listening')
+      resetRecorder()
+      setDisplayText('')
+      setResponseText('')
+
+      try {
+        await startRecording()
+        console.log('🎤 음성 인식 시작')
+      } catch (err) {
+        console.error('❌ Recording error:', err)
+        setAppState('idle')
+      }
     }
-  }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText])
+  }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText, setResponseText])
 
   const handleProcessing = useCallback(async () => {
     if (!transcript) {
@@ -130,69 +141,107 @@ export default function Home() {
   }, [setIsAudioPlaying, setAppState, setResponseText, setDisplayText, setAudioBlob])
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
-      {/* 상단 상태 텍스트 또는 받아쓰기 텍스트 */}
-      {appState !== 'idle' && appState !== 'listening' && (
-        <div
-          className="flex items-end justify-center overflow-y-auto max-h-[40vh] pb-4"
-          style={{
-            marginBottom: '24px',
-          }}
-        >
-          {appState === 'processing' && (
-            <StatusText text={getStatusText(appState, displayText, responseText)} isActive={true} />
-          )}
-          {appState === 'speaking' && responseText && (
-            <ResponseDisplay text={responseText} isVisible={true} />
-          )}
-        </div>
-      )}
-
-      {/* 중앙 영역 */}
-      {(appState === 'idle' || appState === 'listening') ? (
-        // idle/listening: 원이 중앙에
-        <div className="flex-1 flex flex-col items-center justify-center relative w-full">
-          {appState === 'idle' && (
-            <div className="mb-12">
-              <p className="text-base sm:text-base md:text-xl font-black text-gray-600">{getStatusText(appState, displayText, responseText)}</p>
+    <div className="w-full h-screen bg-white flex flex-col items-center p-4 overflow-hidden relative">
+      <AnimatePresence mode="wait">
+        {/* idle 상태: 퍼블리싱 페이지처럼 표시 */}
+        {appState === 'idle' && (
+          <div
+            key="idle"
+            className="w-full h-screen bg-white flex items-center justify-center px-[20px] py-4"
+          >
+            <div className="flex flex-col items-center gap-[35px]">
+              <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">탭하여 시작</p>
+              <VoiceButton
+                isAnimating={true}
+                scale={0.8}
+                isListening={false}
+                onClick={handleButtonClick}
+              />
             </div>
-          )}
-          <div className="relative z-10">
-            <VoiceButton
-              isAnimating={appState === 'listening'}
-              scale={appState === 'listening' ? 0.8 + (volumeLevel / 100) * 0.5 : 1}
-              isListening={appState === 'listening'}
-              onClick={handleButtonClick}
-            />
           </div>
-        </div>
-      ) : (
-        // processing/speaking: 채팅 컨테이너
-        <div className="flex-1 flex items-center justify-center relative w-full">
-          <ChatContainer
-            messages={conversationHistory}
-            isVisible={appState === 'speaking'}
-            isTyping={appState === 'speaking'}
-          />
-        </div>
-      )}
+        )}
 
-      {/* 원 - processing/speaking 상태에서 바텀에 표시 */}
-      {(appState === 'processing' || appState === 'speaking') && (
-        <div
-          className="absolute left-1/2 transform -translate-x-1/2 z-10 transition-all duration-500"
-          style={{
-            bottom: appState === 'speaking' ? '20px' : '80px',
-          }}
-        >
-          <VoiceButton
-            isAnimating={false}
-            scale={0.25}
-            isListening={false}
-            onClick={handleButtonClick}
-          />
-        </div>
-      )}
+        {/* listening 상태: 음성 인식 중 */}
+        {appState === 'listening' && (
+          <div
+            key="listening"
+            className="w-full h-screen bg-white flex items-center justify-center px-[20px] py-4"
+          >
+            <div className="flex flex-col items-center gap-[35px]">
+              <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">
+                {transcript || '듣는중'}
+              </p>
+              <VoiceButton
+                isAnimating={true}
+                scale={Math.min(0.8 + (volumeLevel / 100) * 0.3, 1.1)}
+                isListening={true}
+                onClick={handleButtonClick}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* processing 상태: 생각하는 중 */}
+        {appState === 'processing' && (
+          <motion.div
+            key="processing"
+            className="w-full h-screen bg-white flex items-center justify-center px-[20px] py-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              className="flex flex-col items-center gap-[35px]"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">생각하는 중..</p>
+              <VoiceButton
+                isAnimating={true}
+                scale={0.8}
+                isListening={false}
+                onClick={handleButtonClick}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* speaking 상태: 답변 표시 */}
+        {appState === 'speaking' && responseText && (
+          <motion.div
+            key="speaking"
+            className="w-full h-screen bg-white flex flex-col items-center justify-center p-4 relative"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <ResponseDisplay text={responseText} isVisible={true} />
+            </motion.div>
+            <motion.div
+              className="absolute left-1/2 transform -translate-x-1/2"
+              style={{ bottom: '40px' }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
+            >
+              <VoiceButton
+                isAnimating={true}
+                scale={0.4}
+                isListening={false}
+                onClick={handleButtonClick}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 음성 재생 컴포넌트 */}
       <AudioPlayer

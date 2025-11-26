@@ -1,10 +1,10 @@
 'use client'
 
-interface PublishTextDisplayProps {
+interface StateTextDisplayProps {
   text: string
 }
 
-export default function PublishTextDisplay({ text }: PublishTextDisplayProps) {
+export default function StateTextDisplay({ text }: StateTextDisplayProps) {
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="max-h-[50vh] overflow-y-auto px-[20px]">

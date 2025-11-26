@@ -18,14 +18,24 @@ export default function ResponseDisplay({ text, isVisible }: ResponseDisplayProp
     }
 
     setIsAnimating(true)
-    setDisplayedText(text)
+    let index = 0
+    const interval = setInterval(() => {
+      if (index <= text.length) {
+        setDisplayedText(text.slice(0, index))
+        index++
+      } else {
+        clearInterval(interval)
+      }
+    }, 30)
+
+    return () => clearInterval(interval)
   }, [text, isVisible])
 
   if (!isVisible) return null
 
   return (
     <div className={`w-full px-[20px] ${isAnimating ? 'animate-slideUp' : ''}`}>
-      <p className="text-center text-xl sm:text-xl md:text-2xl text-black leading-8 break-all font-black whitespace-pre-wrap">
+      <p className="text-center text-xl sm:text-xl md:text-2xl text-black leading-8 break-words font-black whitespace-pre-wrap">
         {displayedText}
       </p>
     </div>
