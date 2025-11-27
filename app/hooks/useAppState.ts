@@ -30,12 +30,16 @@ export function useAppState(): UseAppStateReturn {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 
-  // localStorage에서 대화 히스토리 로드
+  // localStorage에서 대화 히스토리 로드 (클라이언트 사이드만)
   useEffect(() => {
+    if (typeof window === 'undefined') return // SSR 환경에서는 실행 안 함
+
     try {
       const saved = localStorage.getItem('conversationHistory')
+      console.log('📖 localStorage에서 로드:', saved)
       if (saved) {
         const parsed = JSON.parse(saved)
+        console.log('✅ 대화 히스토리 복원됨:', parsed)
         setConversationHistoryState(parsed)
       }
     } catch (err) {
@@ -46,9 +50,13 @@ export function useAppState(): UseAppStateReturn {
 
   // 대화 히스토리가 변경될 때마다 localStorage에 저장
   const setConversationHistory = useCallback((history: ConversationHistory) => {
+    console.log('💾 대화 히스토리 업데이트:', history)
     setConversationHistoryState(history)
     try {
-      localStorage.setItem('conversationHistory', JSON.stringify(history))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('conversationHistory', JSON.stringify(history))
+        console.log('✅ localStorage에 저장됨')
+      }
     } catch (err) {
       console.error('대화 히스토리 저장 실패:', err)
     }
