@@ -4,22 +4,21 @@ import { ReactNode } from 'react'
 
 interface VoiceButtonProps {
   isAnimating: boolean
-  scale: number
+  scale?: number
   isListening: boolean
-  isBottom?: boolean
+  size?: number
   onClick: () => void
   children?: ReactNode
 }
 
 export default function VoiceButton({
   isAnimating,
-  scale,
+  scale = 1,
   isListening,
-  isBottom = false,
+  size = 200,
   onClick,
   children,
 }: VoiceButtonProps) {
-  const size = isBottom ? 80 : 200
   const radius = size / 2
   const clampedScale = Math.min(scale, 1.1)
 

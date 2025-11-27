@@ -152,9 +152,9 @@ export default function Home() {
             <div className="flex flex-col items-center gap-[35px]">
               <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">탭하여 시작</p>
               <VoiceButton
-                isAnimating={true}
-                scale={0.8}
+                isAnimating={false}
                 isListening={false}
+                size={200}
                 onClick={handleButtonClick}
               />
             </div>
@@ -175,6 +175,7 @@ export default function Home() {
                 isAnimating={true}
                 scale={Math.min(0.8 + (volumeLevel / 100) * 0.3, 1.1)}
                 isListening={true}
+                size={200}
                 onClick={handleButtonClick}
               />
             </div>
@@ -199,9 +200,9 @@ export default function Home() {
             >
               <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">생각하는 중..</p>
               <VoiceButton
-                isAnimating={true}
-                scale={0.8}
+                isAnimating={false}
                 isListening={false}
+                size={200}
                 onClick={handleButtonClick}
               />
             </motion.div>
@@ -234,9 +235,9 @@ export default function Home() {
               transition={{ delay: 0.5, duration: 0.3 }}
             >
               <VoiceButton
-                isAnimating={true}
-                scale={0.4}
+                isAnimating={false}
                 isListening={false}
+                size={80}
                 onClick={handleButtonClick}
               />
             </motion.div>
