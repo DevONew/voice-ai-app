@@ -104,55 +104,6 @@ export default function Home() {
     }
   }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText, setResponseText])
 
-  const handleProcessing = useCallback(async () => {
-    if (!transcript) {
-      console.log('⚠️ transcript 없음, idle 상태로 복귀')
-      setAppState('idle')
-      return
-    }
-
-    console.log('📤 사용자 메시지 전송:', transcript)
-
-    try {
-      // Chat API 호출
-      console.log('🔗 Chat API 호출 중...')
-      const aiResponse = await handleChatAPI(transcript, conversationHistory, setConversationHistory)
-      setResponseText(aiResponse)
-      console.log('✅ AI 응답 수신:', aiResponse)
-      console.log('💬 대화 히스토리 업데이트 완료, 총 메시지 수:', conversationHistory.length + 2)
-
-      // TTS API 호출 (임시 주석 처리)
-      // console.log('🔗 TTS API 호출 중...')
-      // const audioBlob = await handleTTSAPI(aiResponse)
-      // console.log('✅ 음성 파일 수신, 크기:', audioBlob.size, 'bytes')
-      // setAudioBlob(audioBlob)
-      // console.log('🔊 음성 생성 완료, 재생 준비')
-
-      // 2초 후 processing으로 전환
-      console.log('⏳ 2초 대기 후 processing 상태로 전환')
-      setTimeout(() => {
-        console.log('🎯 상태 변경: listening → processing')
-        setAppState('processing')
-      }, 2000)
-
-      // 응답 상태로 전환
-      // console.log('🎯 상태 변경: processing → speaking')
-      // setAppState('speaking')
-      // setIsAudioPlaying(true)
-      // console.log('▶️ 음성 재생 시작')
-    } catch (err) {
-      console.error('❌ Processing error:', err)
-      setAppState('idle')
-    }
-  }, [transcript, setAppState, handleChatAPI, conversationHistory, setConversationHistory, setResponseText])
-
-  // processing 상태일 때 API 호출 (주석 처리 - Chat API는 백그라운드에서 호출됨)
-  // useEffect(() => {
-  //   if (appState === 'processing' && transcript) {
-  //     handleProcessing()
-  //   }
-  // }, [appState, transcript, handleProcessing])
-
   const handleAudioPlayEnd = useCallback(() => {
     console.log('⏹️ 음성 재생 완료')
     setIsAudioPlaying(false)
