@@ -39,7 +39,7 @@ export function useAudioAPI(): UseAudioAPIReturn {
         throw err
       }
     },
-    []
+    [] // setConversationHistory는 파라미터로 받으므로 의존성 배열에 포함 안 함
   )
 
   const handleTTSAPI = useCallback(async (text: string) => {

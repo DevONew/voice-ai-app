@@ -95,7 +95,6 @@ export default function AudioPlayer({
           isAnimating={true}
           scale={scale}
           isListening={true}
-          isBottom={true}
           onClick={handleStop}
         />
       </div>
