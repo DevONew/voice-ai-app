@@ -12,6 +12,7 @@ interface UseChatHandlerProps {
   onLanguageDetected: (language: string) => void
   onError: () => void
   onAudioGenerated: (audioBlob: Blob) => void
+  onPlayStart: () => void
 }
 
 /**
@@ -24,6 +25,7 @@ export function useChatHandler({
   onLanguageDetected,
   onError,
   onAudioGenerated,
+  onPlayStart,
 }: UseChatHandlerProps) {
   const { handleChatAPI, handleTTSAPI } = useAudioAPI()
   const conversationHistoryRef = useRef(conversationHistory)
@@ -59,22 +61,23 @@ export function useChatHandler({
             const audioBlob = await handleTTSAPI(aiResponse)
             console.log('🎵 TTS 처리 완료')
             onAudioGenerated(audioBlob)
+
+            // TTS 완료 후 재생 시작
+            setTimeout(() => {
+              console.log('🎯 상태 변경: processing → speaking')
+              onStateChange('speaking')
+              onPlayStart()
+            }, 500)
           } catch (ttsErr) {
             console.error('❌ TTS 에러:', ttsErr)
           }
-
-          // Chat 응답이 나오면 speaking으로 전환
-          setTimeout(() => {
-            console.log('🎯 상태 변경: processing → speaking')
-            onStateChange('speaking')
-          }, 500)
         })
         .catch((err) => {
           console.error('❌ Chat API 에러 (백그라운드):', err)
           onError()
         })
     },
-    [handleChatAPI, handleTTSAPI, onResponseReceived, onStateChange, onLanguageDetected, onError, onAudioGenerated]
+    [handleChatAPI, handleTTSAPI, onResponseReceived, onStateChange, onLanguageDetected, onError, onAudioGenerated, onPlayStart]
   )
 
   return { handleFinalTranscript }

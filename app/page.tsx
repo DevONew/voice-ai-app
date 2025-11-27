@@ -33,6 +33,7 @@ export default function Home() {
     onLanguageDetected: setCurrentLanguage,
     onError: () => setAppState('idle'),
     onAudioGenerated: setAudioBlob,
+    onPlayStart: () => setIsAudioPlaying(true),
   })
 
   // STT 훅
