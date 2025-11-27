@@ -1,8 +1,8 @@
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // 여자 목소리 ID (Bella - 부드러운 여성 목소리)
-    const { text, voiceId = 'EXAVITQu4vr4xnSDxMaL' } = body;
+    // 여자 목소리 ID (Charlotte - 자연스럽고 여린 목소리)
+    const { text, voiceId = 'XB0fDUnXU5powFXDhCwa' } = body;
 
     if (!text || typeof text !== 'string') {
       return Response.json({ error: '텍스트가 필요합니다.' }, { status: 400 });
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           text: text,
-          model_id: 'eleven_turbo_v2',
+          model_id: 'eleven_multilingual_v2',
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
