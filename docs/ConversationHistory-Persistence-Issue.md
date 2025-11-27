@@ -325,3 +325,143 @@ typeof window === 'undefined' // false ✅ (window 있음)
   - 클라이언트: useEffect에서 localStorage 로드
   - 하이드레이션 미스매치 방지 ✅
 ```
+
+---
+
+## 🐛 추가 문제: 대화 히스토리 계속 초기화되기
+
+### 문제 상황
+
+Eleven Labs STT 사용 시 대화 히스토리가 계속 초기화되는 현상:
+
+```
+1차 대화:
+- 사용자: "프랑스어 한다고"
+- AI: "세팅 완료되었습니다"
+→ localStorage: [사용자1, AI1] ✅
+
+2차 대화:
+- 사용자: "원어민 선생님 모시겠습니다"
+- AI: "어떤 국가의 선생님..."
+→ localStorage: [사용자2, AI2]  ❌ (기존 대화 사라짐!)
+
+예상: [사용자1, AI1, 사용자2, AI2]
+실제: [사용자2, AI2]
+```
+
+### 원인 분석
+
+**handleFinalTranscript의 의존성 배열 문제:**
+
+```typescript
+// ❌ 문제 코드
+const handleFinalTranscript = useCallback((finalText: string) => {
+  handleChatAPI(finalText, conversationHistory, setConversationHistory)
+    // ...
+}, [conversationHistory, setConversationHistory, handleChatAPI, setAppState])
+   ↑
+   conversationHistory를 의존성에 포함
+```
+
+**문제점:**
+
+```
+1. 첫 대화 완료
+   └─ conversationHistory = [사용자1, AI1]
+
+2. conversationHistory 변경 감지
+   └─ handleFinalTranscript 함수 재생성 (새로운 클로저 생성)
+
+3. 타이밍 이슈 발생
+   ├─ STT 결과 받음: "원어민 선생님 모시겠습니다"
+   ├─ handleFinalTranscript 호출
+   └─ 이때 conversationHistory가 [] (빈 배열)일 수 있음!
+
+4. Chat API 호출
+   └─ newHistory = [] + 새로운 대화
+   └─ [사용자2, AI2] (기존 대화 누락!)
+```
+
+### 해결책
+
+**conversationHistory를 의존성에서 제거:**
+
+```typescript
+// ✅ 수정된 코드
+const handleFinalTranscript = useCallback((finalText: string) => {
+  console.log('📤 백그라운드에서 Chat API 호출:', finalText)
+  console.log('📋 현재 conversationHistory:', conversationHistory)
+
+  // conversationHistory는 의존성에 포함하지 않음
+  // 대신 함수가 호출되는 순간의 최신 값 사용
+  handleChatAPI(finalText, conversationHistory, setConversationHistory)
+    .then((aiResponse) => {
+      console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
+      setResponseText(aiResponse)
+
+      setTimeout(() => {
+        console.log('🎯 상태 변경: processing → speaking')
+        setAppState('speaking')
+      }, 500)
+    })
+    .catch((err) => {
+      console.error('❌ Chat API 에러 (백그라운드):', err)
+      setAppState('idle')
+    })
+}, [setConversationHistory, handleChatAPI, setAppState])
+  // ↑ conversationHistory 제거!
+```
+
+### 왜 이렇게 작동하는가?
+
+```typescript
+// React의 클로저 메커니즘
+
+// ❌ 의존성에 conversationHistory 포함
+const callback1 = useCallback(() => {
+  // 이 함수가 생성될 때의 conversationHistory를 캡처
+  // conversationHistory 변경 → 함수 재생성 → 새로운 클로저
+}, [conversationHistory])
+
+// ✅ 의존성에서 제외
+const callback2 = useCallback(() => {
+  // 이 함수는 한 번만 생성됨
+  // 함수가 호출될 때 (실행 시간)의 최신 conversationHistory 사용
+  // 이것이 React Hooks의 기본 원칙!
+}, [])
+```
+
+### 타이밍 흐름
+
+```
+시간 →
+
+STT 결과: "원어민 선생님 모시겠습니다"
+
+handleFinalTranscript 호출
+├─ 이 시점의 conversationHistory = [사용자1, AI1] ✅
+│  (함수 생성 당시의 값이 아니라, 호출 시점의 값)
+│
+└─ handleChatAPI(finalText, [사용자1, AI1], setConversationHistory)
+   ├─ newHistory = [
+   │    ...conversationHistory,  // [사용자1, AI1]
+   │    { role: 'user', content: '원어민 선생님 모시겠습니다' },
+   │    { role: 'assistant', content: 'AI 응답' }
+   │  ]
+   ├─ newHistory = [사용자1, AI1, 사용자2, AI2] ✅
+   └─ setConversationHistory(newHistory)
+      └─ localStorage에 저장 ✅
+```
+
+### 결론
+
+```
+문제: conversationHistory 의존성으로 인한 클로저 타이밍 이슈
+해결: 의존성에서 conversationHistory 제거
+      함수 호출 시 최신 값 자동으로 사용
+
+결과:
+  - 대화 히스토리 계속 누적 ✅
+  - localStorage에 모든 대화 저장 ✅
+  - 페이지 새로고침 후에도 전체 대화 유지 ✅
+```

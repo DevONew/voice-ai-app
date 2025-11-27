@@ -31,8 +31,10 @@ export default function Home() {
   // STT 최종 결과를 받으면 Chat API를 백그라운드에서 호출
   const handleFinalTranscript = useCallback((finalText: string) => {
     console.log('📤 백그라운드에서 Chat API 호출:', finalText)
+    console.log('📋 현재 conversationHistory:', conversationHistory)
 
     // Promise로 호출 (기다리지 않음)
+    // 주의: conversationHistory는 의존성에 포함되지 않으므로, 함수가 호출될 때의 최신 값 사용
     handleChatAPI(finalText, conversationHistory, setConversationHistory)
       .then((aiResponse) => {
         console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
@@ -48,7 +50,7 @@ export default function Home() {
         console.error('❌ Chat API 에러 (백그라운드):', err)
         setAppState('idle')
       })
-  }, [conversationHistory, setConversationHistory, handleChatAPI, setAppState])
+  }, [setConversationHistory, handleChatAPI, setAppState])
 
   const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorderStreaming(setAppState, undefined, handleFinalTranscript)
 
