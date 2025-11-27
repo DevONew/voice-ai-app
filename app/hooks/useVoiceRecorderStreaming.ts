@@ -141,16 +141,16 @@ export function useVoiceRecorderStreaming(
           setTranscript(recognizedText)
           setInterimTranscript('')
 
-          // 최종 결과 콜백 (Chat API를 백그라운드에서 호출)
-          if (onFinalTranscript) {
-            onFinalTranscript(recognizedText)
-          }
-
-          // 2초 후 화면 전환 (Chat API는 백그라운드에서 진행)
+          // 2초 동안 listening 상태에서 STT 결과 표시
           setTimeout(() => {
             console.log('🎯 상태 변경: listening → processing (자동)')
             if (setAppState) {
               setAppState('processing')
+            }
+
+            // 2초 후에 Chat API를 백그라운드에서 호출
+            if (onFinalTranscript) {
+              onFinalTranscript(recognizedText)
             }
           }, 2000)
 
