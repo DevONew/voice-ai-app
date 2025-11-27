@@ -26,6 +26,8 @@ export default function Home() {
     setIsAudioPlaying,
   } = useAppState()
 
+  const { handleChatAPI } = useAudioAPI()
+
   // STT 최종 결과를 받으면 Chat API를 백그라운드에서 호출
   const handleFinalTranscript = useCallback((finalText: string) => {
     console.log('📤 백그라운드에서 Chat API 호출:', finalText)
@@ -49,7 +51,6 @@ export default function Home() {
   }, [conversationHistory, setConversationHistory, handleChatAPI, setAppState])
 
   const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorderStreaming(setAppState, undefined, handleFinalTranscript)
-  const { handleChatAPI } = useAudioAPI()
 
   // transcript 업데이트될 때 displayText도 업데이트
   useEffect(() => {
