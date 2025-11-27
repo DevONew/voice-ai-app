@@ -7,7 +7,7 @@ import ResponseDisplay from './components/ResponseDisplay'
 import VoiceButton from './components/VoiceButton'
 import ErrorDisplay from './components/ErrorDisplay'
 import PulseIndicator from './components/PulseIndicator'
-import { useVoiceRecorder } from './hooks/useVoiceRecorder'
+import { useVoiceRecorderStreaming } from './hooks/useVoiceRecorderStreaming'
 import { useAppState } from './hooks/useAppState'
 import { useAudioAPI } from './hooks/useAudioAPI'
 
@@ -26,7 +26,29 @@ export default function Home() {
     setIsAudioPlaying,
   } = useAppState()
 
-  const { transcript, volumeLevel, error, isFinalTranscript, startRecording, stopRecording, resetRecorder } = useVoiceRecorder()
+  // STT 최종 결과를 받으면 Chat API를 백그라운드에서 호출
+  const handleFinalTranscript = useCallback((finalText: string) => {
+    console.log('📤 백그라운드에서 Chat API 호출:', finalText)
+
+    // Promise로 호출 (기다리지 않음)
+    handleChatAPI(finalText, conversationHistory, setConversationHistory)
+      .then((aiResponse) => {
+        console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
+        setResponseText(aiResponse)
+
+        // Chat 응답이 나오면 speaking으로 전환
+        setTimeout(() => {
+          console.log('🎯 상태 변경: processing → speaking')
+          setAppState('speaking')
+        }, 500)
+      })
+      .catch((err) => {
+        console.error('❌ Chat API 에러 (백그라운드):', err)
+        setAppState('idle')
+      })
+  }, [conversationHistory, setConversationHistory, handleChatAPI, setAppState])
+
+  const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorderStreaming(setAppState, undefined, handleFinalTranscript)
   const { handleChatAPI } = useAudioAPI()
 
   // transcript 업데이트될 때 displayText도 업데이트
@@ -36,16 +58,15 @@ export default function Home() {
     }
   }, [transcript, appState, setDisplayText])
 
-  // 최종 결과가 나왔을 때 자동으로 처리 시작
-  useEffect(() => {
-    if (isFinalTranscript && appState === 'listening' && transcript) {
-      console.log('✅ 최종 음성 인식 완료:', transcript)
-      setTimeout(async () => {
-        await stopRecording()
-        setAppState('processing')
-      }, 500)
-    }
-  }, [isFinalTranscript, appState, transcript, stopRecording, setAppState])
+  // 최종 결과가 나왔을 때 자동으로 처리 시작 (주석 처리 - 실시간 받아쓰기 기능 추가 후 활용)
+  // useEffect(() => {
+  //   if (isFinalTranscript && appState === 'listening' && transcript) {
+  //     console.log('✅ 최종 음성 인식 완료:', transcript)
+  //     console.log('🎯 상태 변경: listening → processing (자동)')
+  //     resetRecorder()
+  //     setAppState('processing')
+  //   }
+  // }, [isFinalTranscript, appState, transcript, setAppState, resetRecorder])
 
   const handleButtonClick = useCallback(async () => {
     if (appState === 'idle') {
@@ -106,9 +127,16 @@ export default function Home() {
       // setAudioBlob(audioBlob)
       // console.log('🔊 음성 생성 완료, 재생 준비')
 
+      // 2초 후 processing으로 전환
+      console.log('⏳ 2초 대기 후 processing 상태로 전환')
+      setTimeout(() => {
+        console.log('🎯 상태 변경: listening → processing')
+        setAppState('processing')
+      }, 2000)
+
       // 응답 상태로 전환
-      console.log('🎯 상태 변경: processing → speaking')
-      setAppState('speaking')
+      // console.log('🎯 상태 변경: processing → speaking')
+      // setAppState('speaking')
       // setIsAudioPlaying(true)
       // console.log('▶️ 음성 재생 시작')
     } catch (err) {
@@ -117,12 +145,12 @@ export default function Home() {
     }
   }, [transcript, setAppState, handleChatAPI, conversationHistory, setConversationHistory, setResponseText])
 
-  // processing 상태일 때 API 호출
-  useEffect(() => {
-    if (appState === 'processing' && transcript) {
-      handleProcessing()
-    }
-  }, [appState, transcript, handleProcessing])
+  // processing 상태일 때 API 호출 (주석 처리 - Chat API는 백그라운드에서 호출됨)
+  // useEffect(() => {
+  //   if (appState === 'processing' && transcript) {
+  //     handleProcessing()
+  //   }
+  // }, [appState, transcript, handleProcessing])
 
   const handleAudioPlayEnd = useCallback(() => {
     console.log('⏹️ 음성 재생 완료')

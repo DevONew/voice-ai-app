@@ -11,7 +11,8 @@ export async function POST(request: Request) {
 
     // FormData로 전송 (ElevenLabs API는 multipart/form-data 요구)
     const sttFormData = new FormData();
-    sttFormData.append('audio', audioFile);
+    sttFormData.append('file', audioFile);
+    sttFormData.append('model_id', 'scribe_v2');
 
     // ElevenLabs STT API 호출
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
