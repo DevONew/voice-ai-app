@@ -2,17 +2,24 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File;
+    const currentLanguage = formData.get('currentLanguage') as string;
 
     if (!audioFile) {
       return Response.json({ error: '오디오 파일이 필요합니다.' }, { status: 400 });
     }
 
     console.log('📁 받은 오디오 파일:', audioFile.name, audioFile.type, audioFile.size);
+    console.log('🌐 현재 설정 언어:', currentLanguage || 'ko');
 
     // FormData로 전송 (ElevenLabs API는 multipart/form-data 요구)
     const sttFormData = new FormData();
     sttFormData.append('file', audioFile);
     sttFormData.append('model_id', 'scribe_v2');
+    // 한국어 + 현재 설정된 언어 동시 인식
+    sttFormData.append('language_codes', 'ko');
+    if (currentLanguage && currentLanguage !== 'ko') {
+      sttFormData.append('language_codes', currentLanguage);
+    }
 
     // ElevenLabs STT API 호출
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {

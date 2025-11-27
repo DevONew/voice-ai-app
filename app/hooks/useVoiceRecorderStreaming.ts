@@ -16,7 +16,8 @@ interface UseVoiceRecorderStreamingReturn {
 export function useVoiceRecorderStreaming(
   setAppState?: (state: 'idle' | 'listening' | 'processing' | 'speaking') => void,
   onTranscriptUpdate?: (transcript: string, interim: string) => void,
-  onFinalTranscript?: (transcript: string) => void
+  onFinalTranscript?: (transcript: string) => void,
+  currentLanguage?: string
 ): UseVoiceRecorderStreamingReturn {
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -122,6 +123,9 @@ export function useVoiceRecorderStreaming(
           // 최종 STT API 호출
           const formData = new FormData()
           formData.append('audio', audioBlob, 'recording.webm')
+          if (currentLanguage) {
+            formData.append('currentLanguage', currentLanguage)
+          }
 
           console.log('📤 Eleven Labs STT API 호출 중...')
           const response = await fetch('/api/stt', {

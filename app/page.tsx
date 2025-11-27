@@ -1,15 +1,13 @@
 'use client'
 
 import { useCallback, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import AudioPlayer from './components/AudioPlayer'
-import ResponseDisplay from './components/ResponseDisplay'
-import VoiceButton from './components/VoiceButton'
 import ErrorDisplay from './components/ErrorDisplay'
 import PulseIndicator from './components/PulseIndicator'
+import { StateViews } from './components/StateViews'
 import { useVoiceRecorderStreaming } from './hooks/useVoiceRecorderStreaming'
 import { useAppState } from './hooks/useAppState'
-import { useAudioAPI } from './hooks/useAudioAPI'
+import { useChatHandler } from './hooks/useChatHandler'
 
 export default function Home() {
   const {
@@ -18,39 +16,27 @@ export default function Home() {
     conversationHistory,
     audioBlob,
     isAudioPlaying,
+    currentLanguage,
     setAppState,
     setDisplayText,
     setResponseText,
     setConversationHistory,
     setAudioBlob,
     setIsAudioPlaying,
+    setCurrentLanguage,
   } = useAppState()
 
-  const { handleChatAPI } = useAudioAPI()
+  // Chat API 및 언어 감지 핸들러
+  const { handleFinalTranscript } = useChatHandler({
+    conversationHistory,
+    onResponseReceived: setResponseText,
+    onStateChange: setAppState,
+    onLanguageDetected: setCurrentLanguage,
+    onError: () => setAppState('idle'),
+  })
 
-  // STT 최종 결과를 받으면 Chat API를 백그라운드에서 호출
-  const handleFinalTranscript = useCallback((finalText: string) => {
-    console.log('📤 백그라운드에서 Chat API 호출:', finalText)
-
-    // Promise로 호출 (기다리지 않음)
-    handleChatAPI(finalText, conversationHistory, setConversationHistory)
-      .then((aiResponse) => {
-        console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
-        setResponseText(aiResponse)
-
-        // Chat 응답이 나오면 speaking으로 전환
-        setTimeout(() => {
-          console.log('🎯 상태 변경: processing → speaking')
-          setAppState('speaking')
-        }, 500)
-      })
-      .catch((err) => {
-        console.error('❌ Chat API 에러 (백그라운드):', err)
-        setAppState('idle')
-      })
-  }, [setConversationHistory, handleChatAPI, setAppState])
-
-  const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorderStreaming(setAppState, undefined, handleFinalTranscript)
+  // STT 훅
+  const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorderStreaming(setAppState, undefined, handleFinalTranscript, currentLanguage)
 
   // transcript 업데이트될 때 displayText도 업데이트
   useEffect(() => {
@@ -122,120 +108,22 @@ export default function Home() {
 
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center p-4 overflow-hidden relative">
-      <AnimatePresence mode="wait">
-        {/* idle 상태: 퍼블리싱 페이지처럼 표시 */}
-        {appState === 'idle' && (
-          <div
-            key="idle"
-            className="w-full h-screen bg-white flex items-center justify-center px-[20px] py-4"
-          >
-            <div className="flex flex-col items-center gap-[35px]">
-              <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">탭하여 시작</p>
-              <VoiceButton
-                isAnimating={false}
-                isListening={false}
-                size={200}
-                onClick={handleButtonClick}
-              />
-            </div>
-          </div>
-        )}
+      <StateViews
+        appState={appState}
+        transcript={transcript}
+        responseText={responseText}
+        volumeLevel={volumeLevel}
+        onButtonClick={handleButtonClick}
+      />
 
-        {/* listening 상태: 음성 인식 중 */}
-        {appState === 'listening' && (
-          <div
-            key="listening"
-            className="w-full h-screen bg-white flex items-center justify-center px-[20px] py-4"
-          >
-            <div className="flex flex-col items-center gap-[35px]">
-              <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">
-                {transcript || '듣는중'}
-              </p>
-              <VoiceButton
-                isAnimating={true}
-                scale={Math.min(0.8 + (volumeLevel / 100) * 0.3, 1.1)}
-                isListening={true}
-                size={200}
-                onClick={handleButtonClick}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* processing 상태: 생각하는 중 */}
-        {appState === 'processing' && (
-          <motion.div
-            key="processing"
-            className="w-full h-screen bg-white flex items-center justify-center px-[20px] py-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div
-              className="flex flex-col items-center gap-[35px]"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <p className="text-base sm:text-lg md:text-xl font-semibold text-gray-500">생각하는 중..</p>
-              <VoiceButton
-                isAnimating={false}
-                isListening={false}
-                size={200}
-                onClick={handleButtonClick}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-
-        {/* speaking 상태: 답변 표시 */}
-        {appState === 'speaking' && responseText && (
-          <motion.div
-            key="speaking"
-            className="w-full h-screen bg-white flex flex-col items-center justify-center p-4 relative"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div
-              className="w-full px-[20px]"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <ResponseDisplay text={responseText} isVisible={true} />
-            </motion.div>
-            <motion.div
-              className="absolute left-1/2 transform -translate-x-1/2"
-              style={{ bottom: '40px' }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.3 }}
-            >
-              <VoiceButton
-                isAnimating={false}
-                isListening={false}
-                size={80}
-                onClick={handleButtonClick}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 음성 재생 컴포넌트 */}
       <AudioPlayer
         audioBlob={audioBlob}
         isPlaying={isAudioPlaying}
         onPlayEnd={handleAudioPlayEnd}
       />
 
-      {/* 에러 메시지 표시 */}
       <ErrorDisplay error={error} />
 
-      {/* 매우 하단 상태 인디케이터 */}
       <PulseIndicator isVisible={appState === 'listening'} />
     </div>
   )

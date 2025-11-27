@@ -12,12 +12,14 @@ interface UseAppStateReturn {
   conversationHistory: ConversationHistory
   audioBlob: Blob | null
   isAudioPlaying: boolean
+  currentLanguage: string
   setAppState: (state: AppState) => void
   setDisplayText: (text: string) => void
   setResponseText: (text: string) => void
   setConversationHistory: (history: ConversationHistory) => void
   setAudioBlob: (blob: Blob | null) => void
   setIsAudioPlaying: (playing: boolean) => void
+  setCurrentLanguage: (language: string) => void
   getStatusText: (appState: AppState, displayText: string, responseText: string) => string
 }
 
@@ -28,6 +30,7 @@ export function useAppState(): UseAppStateReturn {
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory>([])
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+  const [currentLanguage, setCurrentLanguage] = useState('ko')
 
   const getStatusText = useCallback((state: AppState, displayTxt: string, responseTxt: string): string => {
     switch (state) {
@@ -51,12 +54,14 @@ export function useAppState(): UseAppStateReturn {
     conversationHistory,
     audioBlob,
     isAudioPlaying,
+    currentLanguage,
     setAppState,
     setDisplayText,
     setResponseText,
     setConversationHistory,
     setAudioBlob,
     setIsAudioPlaying,
+    setCurrentLanguage,
     getStatusText,
   }
 }
