@@ -20,7 +20,6 @@ export default function Home() {
     setAppState,
     setDisplayText,
     setResponseText,
-    setConversationHistory,
     setAudioBlob,
     setIsAudioPlaying,
     setCurrentLanguage,
@@ -33,6 +32,7 @@ export default function Home() {
     onStateChange: setAppState,
     onLanguageDetected: setCurrentLanguage,
     onError: () => setAppState('idle'),
+    onAudioGenerated: setAudioBlob,
   })
 
   // STT 훅

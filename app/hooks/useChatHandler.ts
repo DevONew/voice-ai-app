@@ -11,10 +11,11 @@ interface UseChatHandlerProps {
   onStateChange: (state: 'processing' | 'speaking') => void
   onLanguageDetected: (language: string) => void
   onError: () => void
+  onAudioGenerated: (audioBlob: Blob) => void
 }
 
 /**
- * Chat API 호출 및 언어 감지를 담당하는 커스텀 훅
+ * Chat API 호출, 언어 감지, TTS 처리를 담당하는 커스텀 훅
  */
 export function useChatHandler({
   conversationHistory,
@@ -22,8 +23,9 @@ export function useChatHandler({
   onStateChange,
   onLanguageDetected,
   onError,
+  onAudioGenerated,
 }: UseChatHandlerProps) {
-  const { handleChatAPI } = useAudioAPI()
+  const { handleChatAPI, handleTTSAPI } = useAudioAPI()
   const conversationHistoryRef = useRef(conversationHistory)
 
   // conversationHistory 변경될 때마다 ref 업데이트
@@ -47,9 +49,19 @@ export function useChatHandler({
       handleChatAPI(finalText, conversationHistoryRef.current, (newHistory) => {
         // conversationHistory 업데이트는 page.tsx에서 처리
       })
-        .then((aiResponse) => {
+        .then(async (aiResponse) => {
           console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
           onResponseReceived(aiResponse)
+
+          // TTS API 호출 (여자 목소리로 변환)
+          try {
+            console.log('🎵 TTS 처리 시작:', aiResponse)
+            const audioBlob = await handleTTSAPI(aiResponse)
+            console.log('🎵 TTS 처리 완료')
+            onAudioGenerated(audioBlob)
+          } catch (ttsErr) {
+            console.error('❌ TTS 에러:', ttsErr)
+          }
 
           // Chat 응답이 나오면 speaking으로 전환
           setTimeout(() => {
@@ -62,7 +74,7 @@ export function useChatHandler({
           onError()
         })
     },
-    [handleChatAPI, onResponseReceived, onStateChange, onLanguageDetected, onError]
+    [handleChatAPI, handleTTSAPI, onResponseReceived, onStateChange, onLanguageDetected, onError, onAudioGenerated]
   )
 
   return { handleFinalTranscript }
