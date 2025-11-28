@@ -46,6 +46,14 @@ export default function Home() {
     }
   }, [transcript, appState, setDisplayText])
 
+  // speaking 상태일 때 마이크 녹음 중지 (오디오 피드백 방지)
+  useEffect(() => {
+    if (appState === 'speaking') {
+      console.log('🔇 speaking 상태: 마이크 녹음 중지')
+      stopRecording()
+    }
+  }, [appState, stopRecording])
+
   // 최종 결과가 나왔을 때 자동으로 처리 시작 (주석 처리 - 실시간 받아쓰기 기능 추가 후 활용)
   // useEffect(() => {
   //   if (isFinalTranscript && appState === 'listening' && transcript) {
@@ -94,18 +102,8 @@ export default function Home() {
   const handleAudioPlayEnd = useCallback(() => {
     console.log('⏹️ 음성 재생 완료')
     setIsAudioPlaying(false)
-
-    // 2초 대기 후 자동 복귀
-    console.log('⏳ 2초 대기 중...')
-    setTimeout(() => {
-      console.log('🎯 상태 변경: speaking → idle')
-      setAppState('idle')
-      setResponseText('')
-      setDisplayText('')
-      setAudioBlob(null)
-      console.log('✅ 초기 상태로 복귀 완료')
-    }, 2000)
-  }, [setIsAudioPlaying, setAppState, setResponseText, setDisplayText, setAudioBlob])
+    // 자동 복귀하지 않음 - 사용자가 버튼으로 다음 동작 선택
+  }, [setIsAudioPlaying])
 
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center p-4 overflow-hidden relative">
