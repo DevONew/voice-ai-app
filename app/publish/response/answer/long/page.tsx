@@ -5,12 +5,11 @@ import VoiceButton from '../../../../components/VoiceButton'
 import StateTextDisplay from '../../../../components/StateTextDisplay'
 import { LONG_PAGE_TEXT } from '../../../../constants/longPageTexts'
 
+const VOICE_BUTTON_SCALE = 0.4
+const VOICE_BUTTON_BOTTOM_POSITION = '40px'
+
 export default function PublishResponseAnswerLongPage() {
   const [isListening, setIsListening] = useState(false)
-
-  const handleButtonClick = () => {
-    setIsListening(!isListening)
-  }
 
   return (
     <div className="w-full h-screen bg-white flex flex-col items-center p-4 relative">
@@ -18,12 +17,12 @@ export default function PublishResponseAnswerLongPage() {
       <StateTextDisplay text={LONG_PAGE_TEXT} />
 
       {/* 하단 원 */}
-      <div className="absolute left-1/2 transform -translate-x-1/2" style={{ bottom: '40px' }}>
+      <div className="absolute left-1/2 transform -translate-x-1/2" style={{ bottom: VOICE_BUTTON_BOTTOM_POSITION }}>
         <VoiceButton
           isAnimating={true}
-          scale={0.4}
+          scale={VOICE_BUTTON_SCALE}
           isListening={isListening}
-          onClick={handleButtonClick}
+          onClick={() => setIsListening(!isListening)}
         />
       </div>
     </div>
