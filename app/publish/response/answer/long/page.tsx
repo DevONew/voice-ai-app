@@ -6,7 +6,6 @@ import StateTextDisplay from '../../../../components/StateTextDisplay'
 import { LONG_PAGE_TEXT } from '../../../../constants/longPageTexts'
 
 const VOICE_BUTTON_SCALE = 0.4
-const VOICE_BUTTON_BOTTOM_POSITION = '40px'
 
 export default function PublishResponseAnswerLongPage() {
   const [isListening, setIsListening] = useState(false)
@@ -17,7 +16,7 @@ export default function PublishResponseAnswerLongPage() {
       <StateTextDisplay text={LONG_PAGE_TEXT} />
 
       {/* 하단 원 */}
-      <div className="absolute left-1/2 transform -translate-x-1/2" style={{ bottom: VOICE_BUTTON_BOTTOM_POSITION }}>
+      <div className="absolute left-1/2 bottom-[40px] transform -translate-x-1/2">
         <VoiceButton
           isAnimating={true}
           scale={VOICE_BUTTON_SCALE}
