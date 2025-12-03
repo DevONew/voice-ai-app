@@ -141,12 +141,11 @@ export function useChatHandler({
           console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
           onResponseReceived(aiResponse)
 
-          // 문장 단위로 TTS 처리
+          // 전체 텍스트를 한번에 TTS 처리 (분절 없음)
           try {
-            const sentences = splitSentences(aiResponse)
-            console.log(`🎵 TTS 처리 시작 (${sentences.length}개 문장):`, sentences)
+            console.log('🎵 TTS 처리 시작 (전체 텍스트)')
 
-            const audioBlob = await processSentencesTTS(sentences)
+            const audioBlob = await handleTTSAPI(aiResponse)
             console.log('🎵 TTS 처리 완료')
             onAudioGenerated(audioBlob)
 
