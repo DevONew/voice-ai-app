@@ -109,7 +109,7 @@ export default function PulseIndicatorTestPage() {
         {isRecording ? (
           <VoiceButton
             isAnimating={true}
-            scale={0.8 + (volumeLevel / 100) * 0.4}
+            scale={0.6 + (volumeLevel / 100) * 0.8}
             isListening={isRecording}
             onClick={() => {}}
             size={150}
