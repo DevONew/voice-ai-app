@@ -31,7 +31,8 @@ export default function AudioPlayer({
     if (!audioRef.current) return
 
     if (isPlaying && audioBlob) {
-      console.log('🎵 오디오 재생 시작')
+      console.log('🎵 오디오 재생 시작 (1.2x 속도)')
+      audioRef.current.playbackRate = 1.2
       audioRef.current.play().catch((err) => console.error('❌ Play error:', err))
     } else {
       console.log('⏹️ 오디오 일시정지')
