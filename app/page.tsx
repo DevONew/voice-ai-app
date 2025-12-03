@@ -123,7 +123,7 @@ export default function Home() {
 
       <ErrorDisplay error={error} />
 
-      <PulseIndicator isVisible={appState === 'listening'} />
+      <PulseIndicator isVisible={appState === 'listening'} volumeLevel={volumeLevel} />
     </div>
   )
 }
