@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import PulseIndicator from '../../components/PulseIndicator'
+import VoiceButton from '../../components/VoiceButton'
 
 export default function PulseIndicatorTestPage() {
   const [volumeLevel, setVolumeLevel] = useState(0)
@@ -104,8 +105,18 @@ export default function PulseIndicatorTestPage() {
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
 
-      <div className="border-2 border-gray-300 rounded-lg p-8 bg-gray-50 min-h-32 flex items-center justify-center">
-        <PulseIndicator isVisible={isRecording} volumeLevel={volumeLevel} />
+      <div className="border-2 border-gray-300 rounded-lg p-8 bg-gray-50 min-h-48 flex items-center justify-center">
+        {isRecording ? (
+          <VoiceButton
+            isAnimating={true}
+            scale={0.8 + (volumeLevel / 100) * 0.4}
+            isListening={isRecording}
+            onClick={() => {}}
+            size={150}
+          />
+        ) : (
+          <p className="text-gray-500">마이크를 시작하세요</p>
+        )}
       </div>
 
       <div className="text-sm text-gray-500">
