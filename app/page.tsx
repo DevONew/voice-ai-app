@@ -113,7 +113,7 @@ export default function Home() {
         responseText={responseText}
         volumeLevel={volumeLevel}
         onButtonClick={handleButtonClick}
-      />
+      />3000
 
       <AudioPlayer
         audioBlob={audioBlob}
