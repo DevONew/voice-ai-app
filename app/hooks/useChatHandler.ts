@@ -50,8 +50,9 @@ export function useChatHandler({
       }
 
       // Promise로 호출 (기다리지 않음)
-      handleChatAPI(finalText, conversationHistoryRef.current, () => {
-        // conversationHistory 업데이트는 page.tsx에서 처리
+      handleChatAPI(finalText, conversationHistoryRef.current, (newHistory) => {
+        // conversationHistory 즉시 업데이트 (ref에 먼저 저장)
+        conversationHistoryRef.current = newHistory
       })
         .then(async (aiResponse) => {
           console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
