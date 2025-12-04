@@ -4,7 +4,6 @@ import { useCallback, useRef, useEffect } from 'react'
 import { ConversationHistory } from '../types'
 import { useAudioAPI } from './useAudioAPI'
 import { detectLanguage } from '../utils/language-detector'
-import { splitIntoSentences } from '../utils/sentence-splitter'
 import { AUDIO_CONFIG } from '@/app/constants/audio'
 
 interface UseChatHandlerProps {
@@ -59,55 +58,22 @@ export function useChatHandler({
           console.log('✅ Chat API 응답 (백그라운드):', aiResponse)
           onResponseReceived(aiResponse)
 
-          // 문장 단위로 TTS 처리 (스트리밍 방식)
+          // 전체 텍스트를 1번 TTS 처리 (API 비용 절감)
           try {
-            console.log('🎵 문장 단위 TTS 스트리밍 시작')
+            console.log('🎵 TTS 처리 시작 (전체 텍스트)')
 
-            const sentences = splitIntoSentences(aiResponse)
-            console.log(`📝 분리된 문장 수: ${sentences.length}`)
+            const audioBlob = await handleTTSAPI(aiResponse)
+            console.log('✅ TTS 처리 완료')
 
-            if (sentences.length === 0) {
-              console.warn('⚠️ 분리된 문장이 없음')
-              return
-            }
-
-            // 모든 문장의 TTS를 병렬로 요청 (음성 큐 생성)
-            const audioQueue: Blob[] = []
-
-            // 첫 번째 문장부터 순차적으로 처리
-            for (let i = 0; i < sentences.length; i++) {
-              const sentence = sentences[i]
-              console.log(`🎵 TTS 변환 중 (${i + 1}/${sentences.length}): "${sentence.substring(0, 30)}..."`)
-
-              try {
-                const audioBlob = await handleTTSAPI(sentence)
-                audioQueue.push(audioBlob)
-                console.log(`✅ TTS 완료 (${i + 1}/${sentences.length})`)
-
-                // 첫 번째 음성을 받으면 즉시 재생 시작
-                if (i === 0) {
-                  setTimeout(() => {
-                    console.log('🎯 상태 변경: processing → speaking')
-                    onStateChange('speaking')
-                    onAudioGenerated(audioBlob)
-                    onPlayStart()
-                  }, AUDIO_CONFIG.TTS_DELAY)
-                }
-              } catch (ttsErr) {
-                console.error(`❌ TTS 에러 (문장 ${i + 1}):`, ttsErr)
-              }
-            }
-
-            // 모든 오디오 큐가 준비되면 컴포넌트에 알림
-            if (audioQueue.length > 1) {
-              // 나머지 음성들도 onAudioGenerated로 순차 전달
-              // (첫 번째는 이미 전달됨)
-              for (let i = 1; i < audioQueue.length; i++) {
-                onAudioGenerated(audioQueue[i])
-              }
-            }
+            // TTS 완료 후 재생 시작
+            setTimeout(() => {
+              console.log('🎯 상태 변경: processing → speaking')
+              onStateChange('speaking')
+              onAudioGenerated(audioBlob)
+              onPlayStart()
+            }, AUDIO_CONFIG.TTS_DELAY)
           } catch (ttsErr) {
-            console.error('❌ TTS 스트리밍 에러:', ttsErr)
+            console.error('❌ TTS 에러:', ttsErr)
             onError()
           }
         })
