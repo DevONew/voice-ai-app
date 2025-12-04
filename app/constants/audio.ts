@@ -5,7 +5,7 @@
 export const AUDIO_CONFIG = {
   // STT (음성 인식) 설정
   SILENCE_THRESHOLD: 15, // 침묵 판단 음량 임계값 (0-100)
-  SILENCE_DURATION: 1500, // 침묵 지속 시간 (ms)
+  SILENCE_DURATION: 2000, // 침묵 지속 시간 (ms)
   FFT_SIZE: 256, // 오디오 분석 해상도 (2^n)
 
   // TTS (음성 재생) 설정

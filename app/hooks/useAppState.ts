@@ -3,12 +3,13 @@
 import { useCallback, useState } from 'react'
 import { ConversationHistory } from '../types'
 
-type AppState = 'idle' | 'listening' | 'processing' | 'speaking'
+type AppState = 'idle' | 'listening' | 'processing' | 'speaking' | 'error'
 
 interface UseAppStateReturn {
   appState: AppState
   displayText: string
   responseText: string
+  errorMessage: string
   conversationHistory: ConversationHistory
   audioBlob: Blob | null
   isAudioPlaying: boolean
@@ -16,6 +17,7 @@ interface UseAppStateReturn {
   setAppState: (state: AppState) => void
   setDisplayText: (text: string) => void
   setResponseText: (text: string) => void
+  setErrorMessage: (message: string) => void
   setConversationHistory: (history: ConversationHistory) => void
   setAudioBlob: (blob: Blob | null) => void
   setIsAudioPlaying: (playing: boolean) => void
@@ -27,6 +29,7 @@ export function useAppState(): UseAppStateReturn {
   const [appState, setAppState] = useState<AppState>('idle')
   const [displayText, setDisplayText] = useState('')
   const [responseText, setResponseText] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const [conversationHistory, setConversationHistory] = useState<ConversationHistory>([])
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
@@ -51,6 +54,7 @@ export function useAppState(): UseAppStateReturn {
     appState,
     displayText,
     responseText,
+    errorMessage,
     conversationHistory,
     audioBlob,
     isAudioPlaying,
@@ -58,6 +62,7 @@ export function useAppState(): UseAppStateReturn {
     setAppState,
     setDisplayText,
     setResponseText,
+    setErrorMessage,
     setConversationHistory,
     setAudioBlob,
     setIsAudioPlaying,

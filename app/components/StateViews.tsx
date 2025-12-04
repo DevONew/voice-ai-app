@@ -5,9 +5,10 @@ import VoiceButton from './VoiceButton'
 import ResponseDisplay from './ResponseDisplay'
 
 interface StateViewsProps {
-  appState: 'idle' | 'listening' | 'processing' | 'speaking'
+  appState: 'idle' | 'listening' | 'processing' | 'speaking' | 'error'
   transcript: string
   responseText: string
+  errorMessage: string
   volumeLevel: number
   onButtonClick: () => void | Promise<void>
 }
@@ -19,6 +20,7 @@ export function StateViews({
   appState,
   transcript,
   responseText,
+  errorMessage,
   volumeLevel,
   onButtonClick,
 }: StateViewsProps) {
@@ -107,6 +109,43 @@ export function StateViews({
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <ResponseDisplay text={responseText} isVisible={true} />
+          </motion.div>
+          <motion.div
+            className="absolute left-1/2 transform -translate-x-1/2"
+            style={{ bottom: '40px' }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+          >
+            <VoiceButton
+              isAnimating={false}
+              isListening={false}
+              size={80}
+              onClick={onButtonClick}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* error 상태: 에러 메시지 표시 */}
+      {appState === 'error' && errorMessage && (
+        <motion.div
+          key="error"
+          className="w-full h-screen bg-white flex flex-col items-center justify-center p-4 relative"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div
+            className="w-full px-[20px] flex flex-col items-center gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <p className="text-base sm:text-lg md:text-xl font-semibold text-red-500 text-center">
+              {errorMessage}
+            </p>
           </motion.div>
           <motion.div
             className="absolute left-1/2 transform -translate-x-1/2"

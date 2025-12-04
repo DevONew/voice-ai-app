@@ -13,6 +13,7 @@ export default function Home() {
   const {
     appState,
     responseText,
+    errorMessage,
     conversationHistory,
     audioBlob,
     isAudioPlaying,
@@ -20,6 +21,7 @@ export default function Home() {
     setAppState,
     setDisplayText,
     setResponseText,
+    setErrorMessage,
     setAudioBlob,
     setIsAudioPlaying,
     setCurrentLanguage,
@@ -36,8 +38,17 @@ export default function Home() {
     onPlayStart: () => setIsAudioPlaying(true),
   })
 
-  // STT 훅
-  const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorderStreaming(setAppState, undefined, handleFinalTranscript, currentLanguage)
+  // STT 훅 - onError 콜백을 추가해서 에러 메시지를 화면에 표시
+  const { transcript, volumeLevel, error, startRecording, stopRecording, resetRecorder } = useVoiceRecorderStreaming(
+    setAppState,
+    undefined,
+    handleFinalTranscript,
+    currentLanguage,
+    (errorMsg: string) => {
+      setErrorMessage(errorMsg)
+      setAppState('error')
+    }
+  )
 
   // transcript 업데이트될 때 displayText도 업데이트
   useEffect(() => {
@@ -70,6 +81,7 @@ export default function Home() {
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
+      setErrorMessage('')
 
       try {
         await startRecording()
@@ -88,6 +100,22 @@ export default function Home() {
       resetRecorder()
       setDisplayText('')
       setResponseText('')
+      setErrorMessage('')
+
+      try {
+        await startRecording()
+        console.log('🎤 음성 인식 시작')
+      } catch (err) {
+        console.error('❌ Recording error:', err)
+        setAppState('idle')
+      }
+    } else if (appState === 'error') {
+      console.log('🎯 상태 변경: error → listening')
+      setAppState('listening')
+      resetRecorder()
+      setDisplayText('')
+      setResponseText('')
+      setErrorMessage('')
 
       try {
         await startRecording()
@@ -97,7 +125,7 @@ export default function Home() {
         setAppState('idle')
       }
     }
-  }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText, setResponseText])
+  }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText, setResponseText, setErrorMessage])
 
   const handleAudioPlayEnd = useCallback(() => {
     console.log('⏹️ 음성 재생 완료')
@@ -111,6 +139,7 @@ export default function Home() {
         appState={appState}
         transcript={transcript}
         responseText={responseText}
+        errorMessage={errorMessage}
         volumeLevel={volumeLevel}
         onButtonClick={handleButtonClick}
       />

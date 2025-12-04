@@ -19,7 +19,8 @@ export function useVoiceRecorderStreaming(
   setAppState?: (state: 'idle' | 'listening' | 'processing' | 'speaking') => void,
   onTranscriptUpdate?: (transcript: string, interim: string) => void,
   onFinalTranscript?: (transcript: string) => void,
-  currentLanguage?: string
+  currentLanguage?: string,
+  onError?: (errorMessage: string) => void
 ): UseVoiceRecorderStreamingReturn {
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -133,13 +134,29 @@ export function useVoiceRecorderStreaming(
             body: formData,
           })
 
+          console.log('🔄 STT API 응답 상태:', response.status)
+
           if (!response.ok) {
             const errorData = await response.json()
             throw new Error(errorData.error || 'STT 처리 실패')
           }
 
           const result = await response.json()
-          const recognizedText = result.text || ''
+          console.log('📨 STT API 응답 데이터:', result)
+          const recognizedText = (result.text || '').trim()
+
+          // STT 결과가 빈값인 경우 처리
+          if (!recognizedText) {
+            console.warn('⚠️ STT 결과가 비어있음. 재녹음 요청.')
+            const errorMsg = '음성을 인식하지 못했습니다. 다시 말씀해주세요.'
+            if (onError) {
+              onError(errorMsg)
+            } else {
+              setError(errorMsg)
+            }
+            setIsRecording(false)
+            return
+          }
 
           console.log('✅ STT 최종 결과:', recognizedText)
           setTranscript(recognizedText)
@@ -153,7 +170,7 @@ export function useVoiceRecorderStreaming(
             }
 
             // 2초 후에 Chat API를 백그라운드에서 호출
-            if (onFinalTranscript) {
+            if (onFinalTranscript && recognizedText) {
               onFinalTranscript(recognizedText)
             }
           }, 2000)
