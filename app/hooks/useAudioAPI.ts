@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import { ConversationHistory } from '../types'
+import { getTTSFromCache, setTTSToCache } from '../utils/tts-cache'
 
 interface UseAudioAPIReturn {
   handleChatAPI: (userMessage: string, conversationHistory: ConversationHistory, setConversationHistory: (history: ConversationHistory) => void) => Promise<string>
@@ -44,6 +45,13 @@ export function useAudioAPI(): UseAudioAPIReturn {
 
   const handleTTSAPI = useCallback(async (text: string) => {
     try {
+      // 캐시 확인
+      const cachedAudio = getTTSFromCache(text)
+      if (cachedAudio) {
+        return cachedAudio
+      }
+
+      // API 호출
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,6 +61,10 @@ export function useAudioAPI(): UseAudioAPIReturn {
       if (!response.ok) throw new Error('TTS API 실패')
 
       const audioData = await response.blob()
+
+      // 캐시 저장
+      setTTSToCache(text, audioData)
+
       return audioData
     } catch (err) {
       console.error('TTS error:', err)

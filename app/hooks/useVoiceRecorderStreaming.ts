@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { AUDIO_CONFIG } from '@/app/constants/audio'
+import { getAudioContext } from '@/app/utils/audio-context'
 
 interface UseVoiceRecorderStreamingReturn {
   isRecording: boolean
@@ -84,9 +85,8 @@ export function useVoiceRecorderStreaming(
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       streamRef.current = stream
 
-      // 오디오 볼륨 추적
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext as typeof AudioContext
-      const audioContext = new AudioContextClass()
+      // 오디오 볼륨 추적 (싱글톤 인스턴스 사용)
+      const audioContext = getAudioContext()
       audioContextRef.current = audioContext
 
       const analyser = audioContext.createAnalyser()
@@ -201,10 +201,7 @@ export function useVoiceRecorderStreaming(
         cancelAnimationFrame(animationFrameRef.current)
       }
 
-      // 오디오 컨텍스트 정리
-      if (audioContextRef.current) {
-        await audioContextRef.current.close().catch(() => {})
-      }
+      // 싱글톤 AudioContext이므로 닫지 않음 (다른 곳에서도 사용될 수 있음)
 
       setVolumeLevel(0)
       console.log('⏹️ 음성 녹음 중지 (수동)')

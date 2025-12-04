@@ -10,7 +10,7 @@ export const AUDIO_CONFIG = {
 
   // TTS (음성 재생) 설정
   PLAYBACK_RATE: 1.2, // 재생 속도 배율
-  TTS_DELAY: 500, // TTS 완료 후 재생 시작 지연 (ms)
+  TTS_DELAY: 200, // TTS 완료 후 재생 시작 지연 (ms)
 
   // 언어 감지 설정
   LANGUAGE_DETECTION_TIMEOUT: 2000, // 언어 감지 표시 시간 (ms)
