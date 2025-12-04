@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { AUDIO_CONFIG } from '@/app/constants/audio'
 
 interface AudioPlayerProps {
   audioBlob: Blob | null
@@ -31,8 +32,8 @@ export default function AudioPlayer({
     if (!audioRef.current) return
 
     if (isPlaying && audioBlob) {
-      console.log('🎵 오디오 재생 시작 (1.2x 속도)')
-      audioRef.current.playbackRate = 1.2
+      console.log(`🎵 오디오 재생 시작 (${AUDIO_CONFIG.PLAYBACK_RATE}x 속도)`)
+      audioRef.current.playbackRate = AUDIO_CONFIG.PLAYBACK_RATE
       audioRef.current.play().catch((err) => console.error('❌ Play error:', err))
     } else {
       console.log('⏹️ 오디오 일시정지')

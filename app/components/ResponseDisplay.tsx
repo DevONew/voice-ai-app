@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { UI_CONFIG } from '@/app/constants/ui'
 
 interface ResponseDisplayProps {
   text: string
@@ -26,7 +27,7 @@ export default function ResponseDisplay({ text, isVisible }: ResponseDisplayProp
       } else {
         clearInterval(interval)
       }
-    }, 30)
+    }, UI_CONFIG.TYPEWRITER_SPEED)
 
     return () => clearInterval(interval)
   }, [text, isVisible])

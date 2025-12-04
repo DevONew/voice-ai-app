@@ -1,5 +1,7 @@
 'use client'
 
+import { UI_CONFIG } from '@/app/constants/ui'
+
 interface PulseIndicatorProps {
   isVisible: boolean
   volumeLevel?: number
@@ -10,12 +12,13 @@ export default function PulseIndicator({ isVisible, volumeLevel = 0 }: PulseIndi
 
   // 음량에 따라 원 크기 결정 (0-100 → w-1 to w-6)
   const getSize = (volume: number) => {
-    if (volume < 15) return 'w-1 h-1'
-    if (volume < 30) return 'w-2 h-2'
-    if (volume < 45) return 'w-3 h-3'
-    if (volume < 60) return 'w-4 h-4'
-    if (volume < 75) return 'w-5 h-5'
-    return 'w-6 h-6'
+    const thresholds = UI_CONFIG.VOLUME_THRESHOLDS
+    const sizes = UI_CONFIG.VOLUME_SIZE_CLASSES
+
+    for (let i = 0; i < thresholds.length; i++) {
+      if (volume < thresholds[i]) return sizes[i]
+    }
+    return sizes[sizes.length - 1]
   }
 
   const sizeClass = getSize(volumeLevel)

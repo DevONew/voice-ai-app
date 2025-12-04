@@ -4,6 +4,7 @@ import { useCallback, useRef, useEffect } from 'react'
 import { ConversationHistory } from '../types'
 import { useAudioAPI } from './useAudioAPI'
 import { detectLanguage } from '../utils/language-detector'
+import { AUDIO_CONFIG } from '@/app/constants/audio'
 
 interface UseChatHandlerProps {
   conversationHistory: ConversationHistory
@@ -69,7 +70,7 @@ export function useChatHandler({
               console.log('🎯 상태 변경: processing → speaking')
               onStateChange('speaking')
               onPlayStart()
-            }, 500)
+            }, AUDIO_CONFIG.TTS_DELAY)
           } catch (ttsErr) {
             console.error('❌ TTS 에러:', ttsErr)
             onError()

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { AUDIO_CONFIG } from '@/app/constants/audio'
 
 interface UseVoiceRecorderStreamingReturn {
   isRecording: boolean
@@ -34,8 +35,6 @@ export function useVoiceRecorderStreaming(
   const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastVolumeRef = useRef<number>(0)
 
-  const SILENCE_THRESHOLD = 15 // 음량 임계값
-  const SILENCE_DURATION = 1500 // 침묵 시간 (ms)
 
   const updateVolume = useCallback(() => {
     if (!analyserRef.current) return
@@ -56,7 +55,7 @@ export function useVoiceRecorderStreaming(
   const setupSilenceDetection = useCallback(
     (mediaRecorder: MediaRecorder) => {
       const checkSilence = () => {
-        if (lastVolumeRef.current < SILENCE_THRESHOLD) {
+        if (lastVolumeRef.current < AUDIO_CONFIG.SILENCE_THRESHOLD) {
           console.log('🔇 침묵 감지 - 녹음 자동 종료')
           mediaRecorder.stop()
         } else {
@@ -64,11 +63,11 @@ export function useVoiceRecorderStreaming(
           if (silenceTimeoutRef.current) {
             clearTimeout(silenceTimeoutRef.current)
           }
-          silenceTimeoutRef.current = setTimeout(checkSilence, SILENCE_DURATION)
+          silenceTimeoutRef.current = setTimeout(checkSilence, AUDIO_CONFIG.SILENCE_DURATION)
         }
       }
 
-      silenceTimeoutRef.current = setTimeout(checkSilence, SILENCE_DURATION)
+      silenceTimeoutRef.current = setTimeout(checkSilence, AUDIO_CONFIG.SILENCE_DURATION)
     },
     []
   )
@@ -91,7 +90,7 @@ export function useVoiceRecorderStreaming(
       audioContextRef.current = audioContext
 
       const analyser = audioContext.createAnalyser()
-      analyser.fftSize = 256
+      analyser.fftSize = AUDIO_CONFIG.FFT_SIZE
       analyserRef.current = analyser
 
       const source = audioContext.createMediaStreamSource(stream)
