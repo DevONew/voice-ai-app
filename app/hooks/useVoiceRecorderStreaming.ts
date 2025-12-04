@@ -86,7 +86,8 @@ export function useVoiceRecorderStreaming(
       streamRef.current = stream
 
       // 오디오 볼륨 추적
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext as typeof AudioContext
+      const audioContext = new AudioContextClass()
       audioContextRef.current = audioContext
 
       const analyser = audioContext.createAnalyser()

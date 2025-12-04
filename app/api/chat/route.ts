@@ -1,4 +1,5 @@
 import { Anthropic } from '@anthropic-ai/sdk';
+import { MessageParam } from '@anthropic-ai/sdk/resources/messages';
 import { SYSTEM_PROMPT } from '@/app/config/system-prompt';
 
 const anthropic = new Anthropic({
@@ -18,9 +19,9 @@ export async function POST(request: Request) {
     }
 
     // 대화 히스토리에 사용자 메시지 추가
-    const messages = [
+    const messages: MessageParam[] = [
       ...conversationHistory,
-      { role: 'user' as const, content: message },
+      { role: 'user', content: message },
     ];
 
     const response = await anthropic.messages.create({
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
           cache_control: { type: 'ephemeral' },
         },
       ],
-      messages: messages as any,
+      messages,
     });
 
     const assistantMessage =
@@ -44,10 +45,8 @@ export async function POST(request: Request) {
       usage: {
         input_tokens: response.usage.input_tokens,
         output_tokens: response.usage.output_tokens,
-        cache_creation_input_tokens:
-          (response.usage as any).cache_creation_input_tokens || 0,
-        cache_read_input_tokens:
-          (response.usage as any).cache_read_input_tokens || 0,
+        cache_creation_input_tokens: response.usage.cache_creation_input_tokens ?? 0,
+        cache_read_input_tokens: response.usage.cache_read_input_tokens ?? 0,
       },
     });
   } catch (error) {
