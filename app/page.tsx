@@ -60,7 +60,6 @@ export default function Home() {
   // speaking 상태일 때 마이크 녹음 중지 (오디오 피드백 방지)
   useEffect(() => {
     if (appState === 'speaking') {
-      console.log('🔇 speaking 상태: 마이크 녹음 중지')
       stopRecording()
     }
   }, [appState, stopRecording])
@@ -77,7 +76,6 @@ export default function Home() {
 
   const handleButtonClick = useCallback(async () => {
     if (appState === 'idle') {
-      console.log('🎯 상태 변경: idle → listening')
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
@@ -85,17 +83,12 @@ export default function Home() {
 
       try {
         await startRecording()
-        console.log('🎤 음성 인식 시작')
       } catch (err) {
-        console.error('❌ Recording error:', err)
         setAppState('idle')
       }
     } else if (appState === 'listening') {
-      console.log('🎯 상태 변경: listening → processing (수동 중지)')
       await stopRecording()
-      console.log('⏹️ 음성 인식 중지')
     } else if (appState === 'speaking' || appState === 'processing') {
-      console.log('🎯 상태 변경: speaking/processing → listening')
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
@@ -104,13 +97,10 @@ export default function Home() {
 
       try {
         await startRecording()
-        console.log('🎤 음성 인식 시작')
       } catch (err) {
-        console.error('❌ Recording error:', err)
         setAppState('idle')
       }
     } else if (appState === 'error') {
-      console.log('🎯 상태 변경: error → listening')
       setAppState('listening')
       resetRecorder()
       setDisplayText('')
@@ -119,16 +109,13 @@ export default function Home() {
 
       try {
         await startRecording()
-        console.log('🎤 음성 인식 시작')
       } catch (err) {
-        console.error('❌ Recording error:', err)
         setAppState('idle')
       }
     }
   }, [appState, startRecording, stopRecording, resetRecorder, setAppState, setDisplayText, setResponseText, setErrorMessage])
 
   const handleAudioPlayEnd = useCallback(() => {
-    console.log('⏹️ 음성 재생 완료')
     setIsAudioPlaying(false)
     // 자동 복귀하지 않음 - 사용자가 버튼으로 다음 동작 선택
   }, [setIsAudioPlaying])
