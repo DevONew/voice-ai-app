@@ -14,12 +14,12 @@ export default function PublishResponsePage() {
   }
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col items-center p-4 relative">
-      {/* 상단 텍스트 */}
-      <StateTextDisplay text={thinkingText} />
+    <div className="w-full h-screen bg-white flex items-center justify-center px-[20px] py-4">
+      <div className="flex flex-col items-center gap-[35px]">
+        {/* 생각하는 중 문구 */}
+        <StateTextDisplay text={thinkingText} />
 
-      {/* 하단 원 */}
-      <div className="absolute left-1/2 transform -translate-x-1/2" style={{ bottom: '40px' }}>
+        {/* VoiceButton */}
         <VoiceButton
           isAnimating={true}
           scale={0.8}

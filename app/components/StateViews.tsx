@@ -111,8 +111,8 @@ export function StateViews({
             <ResponseDisplay text={responseText} isVisible={true} />
           </motion.div>
           <motion.div
-            className="absolute left-1/2 transform -translate-x-1/2"
-            style={{ bottom: '40px' }}
+            className="absolute left-1/2 transform -translate-x-1/2 pb-safe"
+            style={{ bottom: '80px' }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.5, duration: 0.3 }}
@@ -148,8 +148,8 @@ export function StateViews({
             </p>
           </motion.div>
           <motion.div
-            className="absolute left-1/2 transform -translate-x-1/2"
-            style={{ bottom: '40px' }}
+            className="absolute left-1/2 transform -translate-x-1/2 pb-safe"
+            style={{ bottom: '80px' }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.5, duration: 0.3 }}
