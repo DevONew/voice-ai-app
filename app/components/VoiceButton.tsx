@@ -25,7 +25,7 @@ export default function VoiceButton({
   return (
     <button
       onClick={onClick}
-      className="focus:outline-none z-10 cursor-pointer border-0 bg-transparent p-0"
+      className="focus:outline-none focus-visible:outline-none z-10 cursor-pointer border-0 bg-transparent p-0 m-0"
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -36,6 +36,8 @@ export default function VoiceButton({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        WebkitTapHighlightColor: 'transparent',
+        boxShadow: 'none',
       }}
       aria-label="마이크 버튼"
       type="button"
