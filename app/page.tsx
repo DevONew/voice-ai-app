@@ -76,6 +76,19 @@ export default function Home() {
   // }, [isFinalTranscript, appState, transcript, setAppState, resetRecorder])
 
   const handleButtonClick = useCallback(async () => {
+    // iOS 오디오 재생을 위한 초기화 (사용자 제스처 필요)
+    if (typeof window !== 'undefined' && window.AudioContext) {
+      try {
+        const audioContext = new AudioContext()
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume()
+          console.log('🔊 AudioContext 활성화 (iOS 대응)')
+        }
+      } catch (err) {
+        console.log('⚠️ AudioContext 초기화 실패:', err)
+      }
+    }
+
     if (appState === 'idle') {
       console.log('🎯 상태 변경: idle → listening')
       setAppState('listening')

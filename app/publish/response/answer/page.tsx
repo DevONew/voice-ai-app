@@ -19,7 +19,12 @@ export default function PublishResponseAnswerPage() {
       <StateTextDisplay text={answerText} />
 
       {/* 하단 원 */}
-      <div className="absolute left-1/2 transform -translate-x-1/2" style={{ bottom: '120px' }}>
+      <div
+        className="absolute left-1/2 transform -translate-x-1/2"
+        style={{
+          bottom: 'max(120px, calc(env(safe-area-inset-bottom) + 80px))'
+        }}
+      >
         <VoiceButton
           isAnimating={true}
           scale={0.4}

@@ -46,7 +46,6 @@ export default function VoiceButton({
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         style={{
-          filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.3))',
           display: 'block',
           overflow: 'visible',
         }}
@@ -58,6 +57,16 @@ export default function VoiceButton({
             <stop offset="100%" stopColor="#666666" />
           </radialGradient>
         </defs>
+        {/* 그림자용 원 */}
+        <circle
+          cx={radius}
+          cy={radius + 10}
+          r={radius}
+          fill="#000000"
+          opacity="0.3"
+          filter="blur(15px)"
+        />
+        {/* 실제 버튼 원 */}
         <circle
           cx={radius}
           cy={radius}
