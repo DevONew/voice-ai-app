@@ -33,11 +33,10 @@ export default function VoiceButton({
         transition: isAnimating ? 'transform 0.1s ease-out' : 'transform 0.2s ease-in-out',
         border: 'none',
         outline: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: 'block',
         WebkitTapHighlightColor: 'transparent',
         boxShadow: 'none',
+        overflow: 'visible',
       }}
       aria-label="마이크 버튼"
       type="button"
@@ -48,6 +47,8 @@ export default function VoiceButton({
         viewBox={`0 0 ${size} ${size}`}
         style={{
           filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.3))',
+          display: 'block',
+          overflow: 'visible',
         }}
       >
         <defs>

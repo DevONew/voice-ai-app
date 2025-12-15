@@ -21,6 +21,7 @@ export default function AudioPlayer({
 
     const url = URL.createObjectURL(audioBlob)
     audioRef.current.src = url
+    audioRef.current.load() // iOS에서 중요: 명시적으로 load 호출
     console.log(`🎵 오디오 src 설정: ${url}`)
 
     return () => {
@@ -34,7 +35,26 @@ export default function AudioPlayer({
     if (isPlaying && audioBlob) {
       console.log(`🎵 오디오 재생 시작 (${AUDIO_CONFIG.PLAYBACK_RATE}x 속도)`)
       audioRef.current.playbackRate = AUDIO_CONFIG.PLAYBACK_RATE
-      audioRef.current.play().catch((err) => console.error('❌ Play error:', err))
+
+      // iOS Safari를 위한 재생 처리
+      const playPromise = audioRef.current.play()
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('✅ 오디오 재생 성공')
+          })
+          .catch((err) => {
+            console.error('❌ Play error:', err)
+            // iOS에서 자동재생 실패 시 재시도
+            if (audioRef.current) {
+              audioRef.current.muted = false
+              audioRef.current.play().catch((retryErr) => {
+                console.error('❌ Retry play error:', retryErr)
+              })
+            }
+          })
+      }
     } else {
       console.log('⏹️ 오디오 일시정지')
       audioRef.current.pause()
@@ -57,5 +77,11 @@ export default function AudioPlayer({
     }
   }, [onPlayEnd])
 
-  return <audio ref={audioRef} />
+  return (
+    <audio
+      ref={audioRef}
+      playsInline
+      preload="auto"
+    />
+  )
 }
