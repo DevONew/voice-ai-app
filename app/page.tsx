@@ -8,6 +8,7 @@ import { StateViews } from './components/StateViews'
 import { useVoiceRecorderStreaming } from './hooks/useVoiceRecorderStreaming'
 import { useAppState } from './hooks/useAppState'
 import { useChatHandler } from './hooks/useChatHandler'
+import { isIOSSafari } from './utils/platform-detect'
 
 export default function Home() {
   const {
@@ -76,16 +77,32 @@ export default function Home() {
   // }, [isFinalTranscript, appState, transcript, setAppState, resetRecorder])
 
   const handleButtonClick = useCallback(async () => {
-    // iOS 오디오 재생을 위한 초기화 (사용자 제스처 필요)
-    if (typeof window !== 'undefined' && window.AudioContext) {
+    // iOS Safari에서만 오디오 재생을 위한 초기화 (사용자 제스처 필요)
+    if (typeof window !== 'undefined' && isIOSSafari()) {
       try {
-        const audioContext = new AudioContext()
-        if (audioContext.state === 'suspended') {
-          await audioContext.resume()
-          console.log('🔊 AudioContext 활성화 (iOS 대응)')
+        // AudioContext 초기화 (있다면)
+        if (window.AudioContext || (window as any).webkitAudioContext) {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+          const audioContext = new AudioContextClass()
+
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume()
+            console.log('🔊 AudioContext 활성화 (iOS Safari 대응)')
+          }
+
+          // iOS에서 무음 재생으로 오디오 시스템 깨우기
+          const oscillator = audioContext.createOscillator()
+          const gainNode = audioContext.createGain()
+          gainNode.gain.value = 0.001 // 거의 무음
+          oscillator.connect(gainNode)
+          gainNode.connect(audioContext.destination)
+          oscillator.start()
+          oscillator.stop(audioContext.currentTime + 0.001)
+
+          console.log('✅ iOS 오디오 시스템 활성화 완료')
         }
       } catch (err) {
-        console.log('⚠️ AudioContext 초기화 실패:', err)
+        console.log('⚠️ AudioContext 초기화 실패 (무시 가능):', err)
       }
     }
 
