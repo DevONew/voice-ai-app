@@ -1,16 +1,19 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import AudioPlayer from './components/AudioPlayer'
 import ErrorDisplay from './components/ErrorDisplay'
 import PulseIndicator from './components/PulseIndicator'
 import { StateViews } from './components/StateViews'
+import PasswordModal from './components/PasswordModal'
 import { useVoiceRecorderStreaming } from './hooks/useVoiceRecorderStreaming'
 import { useAppState } from './hooks/useAppState'
 import { useChatHandler } from './hooks/useChatHandler'
 import { isIOSSafari } from './utils/platform-detect'
+import { checkUsageLimit, incrementUsage } from './utils/usage-limit'
 
 export default function Home() {
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
   const {
     appState,
     responseText,
@@ -77,6 +80,20 @@ export default function Home() {
   // }, [isFinalTranscript, appState, transcript, setAppState, resetRecorder])
 
   const handleButtonClick = useCallback(async () => {
+    // 사용 제한 체크 (idle 상태에서만)
+    if (appState === 'idle') {
+      const { allowed, remaining } = checkUsageLimit()
+
+      if (!allowed) {
+        console.log('🚫 사용 제한 도달 - 모달 표시')
+        setShowPasswordModal(true)
+        return
+      }
+
+      console.log(`✅ 사용 가능 (남은 횟수: ${remaining})`)
+      incrementUsage()
+    }
+
     // iOS Safari에서만 오디오 재생을 위한 초기화 (사용자 제스처 필요)
     if (typeof window !== 'undefined' && isIOSSafari()) {
       try {
@@ -163,6 +180,16 @@ export default function Home() {
     // 자동 복귀하지 않음 - 사용자가 버튼으로 다음 동작 선택
   }, [setIsAudioPlaying])
 
+  const handlePasswordSuccess = useCallback(() => {
+    console.log('✅ 비밀번호 인증 성공 - 무제한 사용 가능')
+    setShowPasswordModal(false)
+  }, [])
+
+  const handlePasswordClose = useCallback(() => {
+    console.log('❌ 모달 닫힘 - 더 이상 사용 불가')
+    setShowPasswordModal(false)
+  }, [])
+
   return (
     <div 
       className="w-full bg-white flex flex-col items-center overflow-hidden relative"
@@ -190,6 +217,12 @@ export default function Home() {
       <ErrorDisplay error={error} />
 
       <PulseIndicator isVisible={appState === 'listening'} volumeLevel={volumeLevel} />
+
+      <PasswordModal
+        isOpen={showPasswordModal}
+        onSuccess={handlePasswordSuccess}
+        onClose={handlePasswordClose}
+      />
     </div>
   )
 }
