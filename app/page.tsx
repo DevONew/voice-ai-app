@@ -147,7 +147,14 @@ export default function Home() {
   }, [setIsAudioPlaying])
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col items-center p-4 overflow-hidden relative">
+    <div 
+      className="w-full bg-white flex flex-col items-center overflow-hidden relative"
+      style={{
+        height: '100dvh', // iOS에서 더 정확한 뷰포트 높이
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))', // 하단 Safe Area 고려
+        boxSizing: 'border-box',
+      }}
+    >
       <StateViews
         appState={appState}
         transcript={transcript}
