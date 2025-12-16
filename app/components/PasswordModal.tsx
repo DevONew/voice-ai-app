@@ -9,10 +9,10 @@ interface PasswordModalProps {
   onClose: () => void;
 }
 
-export default function PasswordModal({ 
-  isOpen, 
-  onSuccess, 
-  onClose 
+export default function PasswordModal({
+  isOpen,
+  onSuccess,
+  onClose
 }: PasswordModalProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -47,34 +47,84 @@ export default function PasswordModal({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+        }}
+      >
+        {/* 검은색 배경 */}
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: 0.85 }}
           exit={{ opacity: 0 }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#000000',
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        />
+
+        {/* 모달 컨테이너 */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
         >
+          {/* 흰색 모달 카드 */}
           <motion.div
-            className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '448px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}
           >
             {/* 헤더 */}
-            <div className="text-center mb-6">
-              <div className="text-5xl mb-4">⏸️</div>
-              <h2 className="text-2xl font-bold mb-3">테스트는 최대 5회입니다</h2>
-              <p className="text-gray-600 leading-relaxed">
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏸️</div>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#000000', marginBottom: '12px' }}>
+                테스트는 최대 5회입니다
+              </h2>
+              <p style={{ color: '#6b7280', lineHeight: '1.625' }}>
                 그 이상 사용을 원할 시<br/>
                 비밀번호를 입력해주세요
               </p>
             </div>
 
             {/* 폼 */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <input
                   type="password"
@@ -84,15 +134,36 @@ export default function PasswordModal({
                     setError('');
                   }}
                   placeholder="비밀번호 입력"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none transition-colors text-center"
                   autoFocus
                   disabled={isLoading}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '2px solid #d1d5db',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    backgroundColor: '#ffffff',
+                    fontSize: '16px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#000000';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                  }}
                 />
                 {error && (
                   <motion.p
-                    className="text-red-500 text-sm mt-2 text-center"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      color: '#ef4444',
+                      fontSize: '14px',
+                      marginTop: '8px',
+                      textAlign: 'center',
+                    }}
                   >
                     ❌ {error}
                   </motion.p>
@@ -102,7 +173,28 @@ export default function PasswordModal({
               <button
                 type="submit"
                 disabled={isLoading || !password}
-                className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                style={{
+                  width: '100%',
+                  backgroundColor: isLoading || !password ? '#d1d5db' : '#000000',
+                  color: '#ffffff',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  border: 'none',
+                  cursor: isLoading || !password ? 'not-allowed' : 'pointer',
+                  transition: 'background-color 0.2s',
+                  fontSize: '16px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading && password) {
+                    e.currentTarget.style.backgroundColor = '#1f2937';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading && password) {
+                    e.currentTarget.style.backgroundColor = '#000000';
+                  }
+                }}
               >
                 {isLoading ? '확인 중...' : '계속 사용하기'}
               </button>
@@ -111,13 +203,29 @@ export default function PasswordModal({
             {/* 닫기 버튼 */}
             <button
               onClick={onClose}
-              className="w-full mt-3 py-2 text-gray-500 text-sm hover:text-gray-700 transition-colors"
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                padding: '8px',
+                color: '#6b7280',
+                fontSize: '14px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                cursor: 'pointer',
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#374151';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#6b7280';
+              }}
             >
               닫기
             </button>
           </motion.div>
-        </motion.div>
-      )}
+        </div>
+      </div>
     </AnimatePresence>
   );
 }
